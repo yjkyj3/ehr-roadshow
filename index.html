@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>EHR Agent — 로드쇼 체험</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="shared.css">
+<style>
+body{overflow:auto;display:block}
+#wm{opacity:.06}
+#wm2{position:fixed;left:-30px;top:130px;width:360px;opacity:.05;pointer-events:none;z-index:0;filter:grayscale(1)}
+.hub{min-height:100vh;padding:44px 56px;max-width:1360px;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:40px;position:relative}
+.hub .partners{display:flex;align-items:center;gap:18px}
+.hub .partners img{height:38px}.hub .partners .x{font-family:var(--serif);font-size:22px;color:var(--ink-3)}.hub .partners .lab{font-family:var(--serif);font-size:20px;padding-left:18px;border-left:1px solid var(--line-2)}
+.hub h1{max-width:26ch}
+.hub .lead{font-size:18px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.exp{width:100%;text-align:left;background:var(--white);border:1.5px solid var(--line);border-radius:24px;padding:34px;display:flex;flex-direction:column;gap:16px;min-height:300px;position:relative;overflow:hidden;transition:transform .15s var(--ease),border-color .2s}
+.exp::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--crimson);transform:scaleX(0);transform-origin:left;transition:transform .4s var(--ease)}
+.exp:active{transform:scale(.985);border-color:var(--crimson)}.exp:active::after{transform:scaleX(1)}
+.exp .k{font-size:14px;color:var(--crimson);font-weight:600}
+.exp .t{font-family:var(--serif);font-size:32px;font-weight:700;line-height:1.25}
+.exp .d{font-size:16px;color:var(--ink-2);line-height:1.6}
+.exp .m{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:-16px}
+.strip .s{display:flex;align-items:baseline;gap:12px;padding:14px 18px;border-radius:14px;background:var(--surface)}
+.strip .s b{font-family:var(--serif);font-size:28px;color:var(--crimson);line-height:1;white-space:nowrap}
+.strip .s span{font-size:13.5px;color:var(--ink-2);line-height:1.45}
+@media (max-width:1000px){.strip{grid-template-columns:1fr}}
+.foot{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink-3);flex-wrap:wrap;gap:12px}
+.ecg2{position:absolute;left:0;right:0;top:47%;height:160px;pointer-events:none;z-index:-1;opacity:.35}
+.ecg2 path{fill:none;stroke:var(--crimson);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:4000;stroke-dashoffset:4000;animation:draw 3.4s var(--ease) .3s forwards}
+@media (max-width:1000px){.two{grid-template-columns:1fr}.hub{padding:40px 24px}}
+</style>
+</head>
+<body class="hubpage">
+<img id="wm" src="" alt=""><img id="wm2" src="" alt="">
+<section class="hub">
+  <svg class="ecg2" viewBox="0 0 1600 160" preserveAspectRatio="none"><path id="ecgp" d=""/></svg>
+  <div class="partners"><img id="kt" alt="KT"><span class="x">×</span><img id="ku" alt="고려대학교"><span class="lab">BREIN Lab</span></div>
+  <div><p class="kicker" style="color:var(--crimson);font-weight:600;margin-bottom:14px">KT–고려대 AICT 공동연구센터</p>
+    <h1>환자 기록만 보고<br>다음 검사를 먼저 요청하는<br>EHR Agent</h1>
+    <p class="lead" style="margin-top:16px">의사의 판단을 돕고, 골든타임을 지키고, 틀리면 스스로 고칩니다. 응급실 첫 한 시간이든 외래 첫 방문이든 그 시점의 기록만으로 25개 진단의 가능성을 재고, 부족한 근거를 검사 요청으로 채웁니다.</p></div>
+  <div class="strip">
+    <div class="s"><b>+4%</b><span>패혈증 검사 완료 1시간 지연당 원내 사망 확률 상승 (NEJM 2017)</span></div>
+    <div class="s"><b>8.8h ~ 17.5일</b><span>여섯 실사례에서 핵심 근거가 실제 기록에 남기까지 걸린 시간 — EHR Agent는 첫 시점에 요청</span></div>
+    <div class="s"><b>0회</b><span>병원이 바뀌어도 재학습 없음 — 가중치 고정, 문서만 학습, OMOP-CDM 공통 스키마</span></div>
+  </div>
+  <div class="two">
+    <button class="exp" onclick="location.href='demo1/index.html'"><span class="k">실제 환자 기록 따라가기 · 약 5분</span><span class="t">실제 환자 여섯 명,<br>EHR Agent는 무엇을 먼저 짚었나</span><span class="d">응급실에 실려 온 환자부터 안과·피부과 외래를 다니던 환자까지, 실제 사례를 재구성한 여섯 명 중 한 명을 고릅니다. 실제 기록에는 몇 시간에서 몇 주 뒤에야 나타난 근거를 EHR Agent가 첫 시점에 요청하는 과정과, 틀린 판정이 규칙 문서로 들어가 스스로 진화하는 과정까지 봅니다.</span><span class="m"><span class="chip crim">응급실 · 외래</span><span class="chip">퇴원 진단 대조</span><span class="chip">자기 진화 · 학습 게이트</span></span></button>
+    <button class="exp" onclick="location.href='demo2/index.html'"><span class="k">가상 아바타 만들기 · 약 3분</span><span class="t">가상 아바타를 만들고,<br>EHR Agent와 검사 고르기 게임</span><span class="d">응급실에 실려 가는 아바타, 혹은 검진 결과지를 들고 외래를 찾는 아바타. 나이와 지병, 그날의 사건을 고르면 가상 아바타가 만들어지고, 활력징후를 돌릴 때마다 25개 진단의 가능성이 실시간으로 움직입니다. 그다음엔 "지금 검사 하나만 고른다면"을 놓고 EHR Agent와 게임을 합니다.</span><span class="m"><span class="chip crim">응급실 · 외래</span><span class="chip">판단 보조</span><span class="chip">검사 고르기 게임</span><span class="chip">아바타 리포트 카드</span></span></button>
+  </div>
+  <div class="foot"><span>모든 화면은 재구성 사례와 가상 아바타에 대한 EHR Agent 동작 시연이며 실제 진료·진단과 무관합니다. 개인 정보는 입력받지 않습니다.</span><button class="btn small ghost" onclick="document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()">전체화면</button></div>
+</section>
+<script src="logos.js"></script>
+<script>
+document.getElementById('kt').src = LOGO_KT; document.getElementById('ku').src = LOGO_KU; document.getElementById('wm').src = LOGO_KU; document.getElementById('wm2').src = LOGO_KT;
+(function () { const h = 160, mid = 80; let d = `M0 ${mid}`, x = 0; while (x < 1600) { d += ` L${x += 40} ${mid} L${x += 10} ${mid - 6} L${x += 10} ${mid} L${x += 14} ${mid} L${x += 6} ${mid + 8} L${x += 8} ${mid - 58} L${x += 8} ${mid + 24} L${x += 6} ${mid} L${x += 30} ${mid} L${x += 12} ${mid - 10} L${x += 12} ${mid}`; } document.getElementById('ecgp').setAttribute('d', d); })();
+</script>
+</body>
+</html>
