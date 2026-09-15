@@ -166,7 +166,7 @@ h3{font-weight:700;font-size:17px}
 .tree .vwrap{margin:12px 14px 16px;min-height:52px;display:flex;align-items:center;justify-content:center}
 .tree .wait{font-size:13px;color:var(--ink-3);display:flex;align-items:center;gap:8px}
 .tree .wait i{width:6px;height:6px;border-radius:50%;background:var(--crimson);animation:blink 1s infinite}
-.tree.mine .th .dx::after{content:"내 예측";font-family:var(--sans);font-size:11px;font-weight:600;color:var(--crimson);background:var(--tint);padding:3px 8px;border-radius:999px}
+.tree.mine .th .dx::after{content:"나의 선택";font-family:var(--sans);font-size:11px;font-weight:600;color:var(--crimson);background:var(--tint);padding:3px 8px;border-radius:999px}
 
 /* ---------- speech (LLM) ---------- */
 .speech{background:var(--surface);border-radius:var(--r-lg);padding:26px 28px;position:relative;border-left:4px solid var(--crimson)}

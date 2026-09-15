@@ -16,7 +16,7 @@ body{overflow:auto;display:block}
 .hub{min-height:100vh;padding:44px 56px;max-width:1360px;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:40px;position:relative}
 .hub .partners{display:flex;align-items:center;gap:18px}
 .hub .partners img{height:38px}.hub .partners .x{font-family:var(--serif);font-size:22px;color:var(--ink-3)}.hub .partners .lab{font-family:var(--serif);font-size:20px;padding-left:18px;border-left:1px solid var(--line-2)}
-.hub h1{max-width:26ch}
+.hub h1{max-width:34ch;font-size:clamp(32px,3.8vw,50px)}
 .hub .lead{font-size:18px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .exp{width:100%;text-align:left;background:var(--white);border:1.5px solid var(--line);border-radius:24px;padding:34px;display:flex;flex-direction:column;gap:16px;min-height:300px;position:relative;overflow:hidden;transition:transform .15s var(--ease),border-color .2s}
@@ -43,16 +43,16 @@ body{overflow:auto;display:block}
   <svg class="ecg2" viewBox="0 0 1600 160" preserveAspectRatio="none"><path id="ecgp" d=""/></svg>
   <div class="partners"><img id="kt" alt="KT"><span class="x">×</span><img id="ku" alt="고려대학교"><span class="lab">BREIN Lab</span></div>
   <div><p class="kicker" style="color:var(--crimson);font-weight:600;margin-bottom:14px">KT–고려대 AICT 공동연구센터</p>
-    <h1>환자 기록만 보고<br>다음 검사를 먼저 요청하는<br>EHR Agent</h1>
-    <p class="lead" style="margin-top:16px">의사의 판단을 돕고, 골든타임을 지키고, 틀리면 스스로 고칩니다. 응급실 첫 한 시간이든 외래 첫 방문이든 그 시점의 기록만으로 25개 진단의 가능성을 재고, 부족한 근거를 검사 요청으로 채웁니다.</p></div>
+    <h1>환자의 기록을 바탕으로<br>의사의 판단과 검사를 보조하는<br>EHR Agent</h1>
+    <p class="lead" style="margin-top:16px">응급실 첫 한 시간, 외래 첫 방문. 기록이 가장 적은 순간에 EHR Agent가 무엇을 보고 무엇을 먼저 요청하는지, 그리고 틀렸을 때 어떻게 스스로 고치는지 직접 체험해 보세요.</p></div>
   <div class="strip">
     <div class="s"><b>+4%</b><span>패혈증 검사 완료 1시간 지연당 원내 사망 확률 상승 (NEJM 2017)</span></div>
-    <div class="s"><b>8.8h ~ 17.5일</b><span>여섯 실사례에서 핵심 근거가 실제 기록에 남기까지 걸린 시간 — EHR Agent는 첫 시점에 요청</span></div>
+    <div class="s"><b>8.8h ~ 17.5일</b><span>실사례 환자 여섯 명에서 핵심 근거가 실제 기록에 남기까지 걸린 시간 — EHR Agent는 첫 시점에 요청</span></div>
     <div class="s"><b>0회</b><span>병원이 바뀌어도 재학습 없음 — 가중치 고정, 문서만 학습, OMOP-CDM 공통 스키마</span></div>
   </div>
   <div class="two">
-    <button class="exp" onclick="location.href='demo1/index.html'"><span class="k">실제 환자 기록 따라가기 · 약 5분</span><span class="t">실제 환자 여섯 명,<br>EHR Agent는 무엇을 먼저 짚었나</span><span class="d">응급실에 실려 온 환자부터 안과·피부과 외래를 다니던 환자까지, 실제 사례를 재구성한 여섯 명 중 한 명을 고릅니다. 실제 기록에는 몇 시간에서 몇 주 뒤에야 나타난 근거를 EHR Agent가 첫 시점에 요청하는 과정과, 틀린 판정이 규칙 문서로 들어가 스스로 진화하는 과정까지 봅니다.</span><span class="m"><span class="chip crim">응급실 · 외래</span><span class="chip">퇴원 진단 대조</span><span class="chip">자기 진화 · 학습 게이트</span></span></button>
-    <button class="exp" onclick="location.href='demo2/index.html'"><span class="k">가상 아바타 만들기 · 약 3분</span><span class="t">가상 아바타를 만들고,<br>EHR Agent와 검사 고르기 게임</span><span class="d">응급실에 실려 가는 아바타, 혹은 검진 결과지를 들고 외래를 찾는 아바타. 나이와 지병, 그날의 사건을 고르면 가상 아바타가 만들어지고, 활력징후를 돌릴 때마다 25개 진단의 가능성이 실시간으로 움직입니다. 그다음엔 "지금 검사 하나만 고른다면"을 놓고 EHR Agent와 게임을 합니다.</span><span class="m"><span class="chip crim">응급실 · 외래</span><span class="chip">판단 보조</span><span class="chip">검사 고르기 게임</span><span class="chip">아바타 리포트 카드</span></span></button>
+    <button class="exp" onclick="location.href='demo1/index.html'"><span class="k">실사례 환자 따라가기 · 약 5분</span><span class="t">EHR Agent는<br>어떻게 판단했을까요?</span><span class="d">응급실에 실려 온 환자부터 안과·피부과 외래를 다니던 환자까지, 실사례 환자 여섯 명 중 한 명을 고르세요. 기록이 들어오고, 확률이 움직이고, 검사를 요청하고, 판정이 찍히는 과정을 눈앞에서 따라갑니다. 중간에 당신의 선택을 남기고 EHR Agent와 비교해 보세요.</span><span class="m"><span class="chip crim">응급실 · 외래</span><span class="chip">퇴원 진단 대조</span><span class="chip">자기 진화 · 학습 게이트</span></span></button>
+    <button class="exp" onclick="location.href='demo2/index.html'"><span class="k">가상 아바타 만들기 · 약 3분</span><span class="t">내 아바타가<br>응급실에 간다면?</span><span class="d">나이와 지병, 그날의 사건을 고르면 아바타가 만들어집니다. 응급실로 보낼지 외래로 보낼지도 당신이 정합니다. 활력징후를 돌릴 때마다 확률이 실시간으로 움직이고, 마지막엔 "지금 검사 하나만 고른다면"을 놓고 EHR Agent와 게임을 합니다.</span><span class="m"><span class="chip crim">응급실 · 외래</span><span class="chip">판단 보조</span><span class="chip">검사 고르기 게임</span><span class="chip">아바타 리포트 카드</span></span></button>
   </div>
   <div class="foot"><span>모든 화면은 재구성 사례와 가상 아바타에 대한 EHR Agent 동작 시연이며 실제 진료·진단과 무관합니다. 개인 정보는 입력받지 않습니다.</span><button class="btn small ghost" onclick="document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()">전체화면</button></div>
 </section>
