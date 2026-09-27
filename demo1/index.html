@@ -63,10 +63,25 @@
 .gopts .opt .p{font-family:var(--serif);color:var(--ink-3);font-size:16px}
 .gopts .opt.on .p{color:var(--crimson-2)}
 
-.result{display:grid;grid-template-columns:1fr 360px;gap:40px;align-items:start}
-.rhead{display:grid;grid-template-columns:1fr 110px 90px 90px 110px;gap:12px;padding:0 20px 8px;font-size:12.5px;color:var(--ink-3)}
+.result{display:grid;grid-template-columns:1fr 340px;gap:36px;align-items:start}
+.rhead{display:grid;grid-template-columns:1fr 120px 100px 110px;gap:12px;padding:0 20px 8px;font-size:12.5px;color:var(--ink-3)}
 .rhead span:last-child{text-align:right}
-.result .rrow{grid-template-columns:1fr 110px 90px 90px 110px;gap:12px}
+.result .rrow{grid-template-columns:1fr 120px 100px 110px;gap:12px;cursor:pointer}
+.result .rrow .dx::before{content:"▸";display:inline-block;color:var(--crimson);margin-right:8px;transition:transform .2s}
+.result .rrow.open .dx::before{transform:rotate(90deg)}
+.result .rrow .rs{grid-column:1/-1;display:none;padding-top:10px;border-top:1px solid var(--line);margin-top:4px}
+.result .rrow.open .rs{display:block;animation:pop .3s var(--spring) both}
+.rs-h{font-size:12px;font-weight:700;color:var(--crimson);margin-bottom:8px;letter-spacing:.02em}
+.rs-step{display:grid;grid-template-columns:70px 66px 100px 1fr;gap:10px;align-items:start;padding:9px 12px;border-radius:10px;background:var(--surface);margin-bottom:6px;font-size:13.5px;line-height:1.55;border-left:3px solid var(--line-2)}
+.rs-step.llm{border-left-color:var(--crimson)}
+.rs-step .rs-r{font-weight:700;color:var(--ink)}
+.rs-step .rs-j{font-size:11.5px;font-weight:700;color:var(--ink-3);background:var(--white);border:1px solid var(--line);border-radius:6px;padding:2px 7px;text-align:center}
+.rs-step.llm .rs-j{color:var(--crimson);border-color:var(--tint-2);background:var(--tint)}
+.rs-step .rs-p{color:var(--ink-2);font-variant-numeric:tabular-nums}
+.rs-step .rs-t{color:var(--ink)}
+.rs-none{font-size:13.5px;color:var(--ink-2);padding:9px 12px;background:var(--bad-t);border-radius:10px}
+.rs-calib{margin-top:6px;padding:14px;border-radius:12px;background:var(--white);border:1px solid var(--line)}
+.rs-calib p{font-size:13.5px;color:var(--ink);line-height:1.6}
 .you{font-size:13.5px;font-weight:600}.you.y{color:var(--crimson)}.you.n{color:var(--ink-3)}
 
 /* ---- 시간 비교 ---- */
@@ -224,7 +239,7 @@
 <script src="../demo_data.js"></script>
 <script src="../omop_data.js"></script>
 <script>
-buildShell({ stages: ["왜 첫 시점인가", "환자 선택", "관찰창", "FM 확률", "LLM 보정", "후보", "경로 탐색", "나의 선택", "결과", "시간 비교", "학습"] });
+buildShell({ stages: ["왜 첫 시점인가", "환자 선택", "관찰창", "FM 확률", "LLM 보정", "후보", "경로 탐색", "결과 · 추론", "판독문", "시간 비교", "학습"] });
 let patients = PATIENTS.concat(OMOP_PATIENTS);
 window.loadPatients = json => { patients = json; if (Router.current === 'pick') go('pick'); };
 const S = { patient: null, guess: [] };
@@ -242,7 +257,7 @@ SC.landing = () => {
       <div class="partners"><img src="${LOGO_KT}" alt="KT"><span class="x">×</span><img src="${LOGO_KU}" alt="고려대학교"><span class="lab">BREIN Lab</span></div>
       <p class="kicker">EHR Agent · 실사례 환자 따라가기</p>
       <h1>EHR Agent는<br>어떻게<br>판단했을까요?</h1>
-      <p class="lead">실사례 환자 여섯 명 중 한 명을 고르세요. 첫 시점의 기록만 보고 EHR Agent가 무엇을 의심하고, 어떤 검사를 먼저 요청하고, 어떻게 확정과 배제를 정하는지 한 화면씩 따라갑니다. 중간에 당신의 선택도 남겨 보세요.</p>
+      <p class="lead">실사례 환자 여섯 명 중 한 명을 고르세요. 첫 시점의 기록만 보고 EHR Agent가 무엇을 의심하고, 어떤 검사를 먼저 요청하고, 어떻게 확정과 배제를 정하는지 한 화면씩 따라갑니다. 각 판정의 추론 근거까지 읽어 보세요.</p>
       <div class="cta"><button class="btn primary big" onclick="go('why')">체험 시작</button><button class="btn ghost big" onclick="location.href=HUB_URL">체험 선택으로</button><span class="note">약 5분 · 화면의 버튼으로 진행</span></div>
       ${visits ? `<p class="visits">오늘 이 부스에서 <b>${visits}</b>명이 EHR Agent의 판단을 따라가 봤습니다</p>` : ''}
     </div>
@@ -276,7 +291,7 @@ SC.why = async () => {
 
 /* ---------- pick ---------- */
 SC.pick = () => {
-  Router.hint('마음에 드는 환자를 하나 골라 주세요. 그 환자의 첫 기록부터 시작합니다'); S.patient = null; S.guess = []; Router.who('');
+  Router.hint('마음에 드는 환자를 하나 골라 주세요. 그 환자의 첫 기록부터 시작합니다'); S.patient = null; Router.who('');
   const card = p => `<button class="pcard" data-id="${p.id}"><span class="axis ${p.axis === '응급실' ? '' : 'fm'}">${p.axis === '응급실' ? '응급실 도착 초기' : '외래 첫 방문 · OMOP-CDM'}</span><span class="name">${esc(p.name)}</span><span class="meta">${p.sex} · ${p.age}세</span><span class="cc"><span class="cl">주증상</span><span class="ct">${esc(p.chief || p.summary)}</span></span>${p.timeline && p.timeline.headline ? `<span class="teaser"><b>${esc(p.timeline.headline.num)}</b><span>실제 기록보다 먼저 짚음</span></span>` : ''}${p.source ? `<span class="src">${esc(p.source)}</span>` : ''}<span class="go">이 사례로 시작</span></button>`;
   const er = patients.filter(p => p.axis === '응급실'), out = patients.filter(p => p.axis !== '응급실');
   $('#app').innerHTML = `<section class="scene">
@@ -329,7 +344,7 @@ SC.fm = async () => {
 /* ---------- calib ---------- */
 SC.calib = async () => {
   const p = S.patient; if (!p) return go('pick');
-  Router.hint('LLM이 기록을 읽고 확률을 고칩니다. 어떤 진단이 움직이는지 보세요'); $('#skip').style.visibility = 'visible';
+  Router.hint('LLM이 기록을 읽고 확률을 고칩니다. 어떤 진단의 확률이 바뀌는지 보세요'); $('#skip').style.visibility = 'visible';
   const probs = { ...p.fm }; wallReset();
   $('#app').innerHTML = `<section class="scene">
     <div class="head"><div><h2>LLM 보정 — 확률에 임상 맥락을 얹다</h2><p class="lead">FM은 확률만 내고 이유를 말하지 못합니다. LLM이 기록을 읽고 확률을 보정한 뒤, 조사할 후보를 고릅니다.</p></div></div>
@@ -386,52 +401,60 @@ SC.tree = async () => {
   Router.hint('후보 5개가 동시에 라운드를 돕니다. 확정·배제 도장이 찍히는 순간을 지켜보세요'); $('#skip').style.visibility = 'visible';
   $('#app').innerHTML = `<section class="scene"><div class="head"><div><h2>임상 경로 탐색</h2><p class="lead">LLM이 이 진단을 갈라 줄 기록의 이름을 고르고, 실제 기록에 있는 것만 가져와 FM이 확률을 다시 냅니다. 확정·배제·추가 조사 중 하나를 정하고 이유를 남깁니다.</p></div></div><div class="trees"></div></section>`;
   await runTreeUI(p.candidates, dx => p.trees[dx] || [], null);
-  Router.ready('나의 선택으로');
+  Router.ready('결과 보기');
 };
 
 /* ---------- guess (참여자 예측) ---------- */
 function finalVerdicts(p) {
   return p.candidates.map(c => { const rs = p.trees[c.dx]; const l = rs[rs.length - 1]; const included = l.verdict === '확정' || (l.verdict === '불확실' && l.after >= 0.6); const truth = p.truth.includes(c.dx); return { dx: c.dx, p0: c.p, p1: l.after, verdict: l.verdict, included, truth, hit: included === truth }; });
 }
-SC.guess = () => {
-  const p = S.patient; if (!p) return go('pick');
-  Router.hint('EHR Agent의 답은 봤습니다. 이제 당신의 선택입니다');
-  const rows = finalVerdicts(p);
-  $('#app').innerHTML = `<section class="scene">
-    <div class="head"><div><h2>나의 선택 — 퇴원 진단에는 무엇이 있었을까요?</h2><p class="lead">EHR Agent는 이미 답을 냈습니다. 당신이라면 이 환자의 퇴원 진단에 어떤 것이 있었다고 보시겠어요? 여러 개 골라도 됩니다. 결과 화면에서 당신 · EHR Agent · 정답을 나란히 봅니다.</p></div></div>
-    <div class="guess"><div class="gopts">${rows.map(r => `<button class="opt" data-dx="${esc(r.dx)}"><span>${esc(r.dx)}</span><span class="p num">EHR Agent ${r.verdict} · ${fmt(r.p1)}</span></button>`).join('')}</div>
-      <aside class="card soft"><h3>힌트</h3><p class="sub">EHR Agent의 확정과 배제는 참고일 뿐입니다. 불확실로 남긴 진단에서는 사람의 판단이 갈립니다. 하나도 고르지 않으면 '모두 없음'으로 봅니다.</p><p class="notice">선택은 통계로만 쓰이고 개인 정보는 저장하지 않습니다.</p></aside></div></section>`;
-  $$('.gopts .opt').forEach(b => b.onclick = () => { const d = b.dataset.dx; S.guess = S.guess.includes(d) ? S.guess.filter(x => x !== d) : [...S.guess, d]; b.classList.toggle('on', S.guess.includes(d)); });
-  Router.ready('정답 보기');
-};
-
 /* ---------- result ---------- */
 SC.result = async () => {
   const p = S.patient; if (!p) return go('pick');
-  Router.hint('당신의 선택, EHR Agent의 판정, 그리고 퇴원 진단을 나란히 봅니다');
+  Router.hint('EHR Agent의 최종 목록을 퇴원 진단과 맞춰 보고, 왜 그렇게 판단했는지 근거를 읽어 보세요');
   const rows = finalVerdicts(p);
   const missed = p.truth.filter(t => !p.candidates.some(c => c.dx === t)).map(t => ({ dx: t, p0: p.fm[t] ?? 0, p1: null, verdict: '후보 미선정', included: false, truth: true, hit: false }));
   const all = [...rows, ...missed];
-  const mHits = all.filter(r => r.hit).length; const uHits = all.filter(r => S.guess.includes(r.dx) === r.truth).length;
+  const mHits = all.filter(r => r.hit).length;
   const calls = Object.values(p.trees).reduce((s, rs) => s + rs.length * 2, 0) + 4;
+  const llmN = Object.values(p.trees).flat().filter(r => r.judge === 'llm').length;
+  const reason = r => {
+    const rs = p.trees[r.dx]; if (!rs) return `<div class="rs-none">후보에 오르지 못해 경로 탐색이 열리지 않았습니다. FM 초기 확률 ${fmt(r.p0)} — 이 놓침이 학습 단계에서 오류 은행으로 들어갑니다.</div>`;
+    return rs.map(x => `<div class="rs-step ${x.judge}"><span class="rs-r">라운드 ${x.round}</span><span class="rs-j">${x.judge === 'llm' ? 'LLM 추론' : '임계값'}</span><span class="rs-p num">${fmt(x.before)} → ${fmt(x.after)}</span><span class="rs-t">${esc(x.text)}</span></div>`).join('');
+  };
   $('#app').innerHTML = `<section class="scene">
-    <div class="head"><div><h2>결과 — 당신, EHR Agent, 그리고 퇴원 진단</h2><p class="lead">최종 진단은 며칠에서 몇 주 뒤에야 코딩되는 정답입니다. EHR Agent는 관찰창 기록에서 시작했고, 당신은 EHR Agent의 경로 탐색을 본 뒤에 골랐습니다.</p></div></div>
+    <div class="head"><div><h2>결과 — EHR Agent는 얼마나 맞췄나, 왜 그렇게 판단했나</h2><p class="lead">퇴원 진단은 며칠에서 몇 주 뒤에야 코딩되는 정답입니다. EHR Agent는 관찰창 기록에서 시작해 이 목록에 도달했습니다. 각 진단을 누르면 라운드별 추론 근거가 펼쳐집니다.</p></div></div>
     <div class="result"><div>
-      <div class="rhead"><span>진단</span><span>초기 → 최종</span><span>EHR Agent</span><span>나의 선택</span><span>퇴원 진단 대조</span></div>
-      <div class="rlist">${all.map((r, i) => `<div class="rrow ${r.hit ? 'hit' : 'miss'}" style="animation-delay:${i * 90}ms">
+      <div class="rhead"><span>진단</span><span>초기 → 최종</span><span>EHR Agent</span><span>퇴원 진단 대조</span></div>
+      <div class="rlist">${all.map((r, i) => `<div class="rrow ${r.hit ? 'hit' : 'miss'}" style="animation-delay:${i * 90}ms" data-i="${i}">
         <span class="dx">${esc(r.dx)}<small>${r.truth ? '퇴원 진단에 있음' : '퇴원 진단에 없음'}</small></span>
         <span class="num">${fmt(r.p0)} → ${r.p1 === null ? '—' : fmt(r.p1)}</span>
         <span><span class="chip ${r.verdict === '확정' ? 'crim' : r.verdict === '배제' ? 'out' : r.verdict === '후보 미선정' ? 'bad' : 'hold'}">${r.verdict}</span></span>
-        <span class="you ${S.guess.includes(r.dx) ? 'y' : 'n'}">${S.guess.includes(r.dx) ? '있다' : '없다'}${S.guess.includes(r.dx) === r.truth ? ' ✓' : ''}</span>
-        <span class="mark">${r.hit ? (r.truth ? 'Agent 맞음' : 'Agent 맞음') : (r.truth ? 'Agent 놓침' : 'Agent 과잉')}</span></div>`).join('')}</div></div>
-      <aside class="score"><div class="big num">${mHits} / ${all.length}<small>EHR Agent 일치</small></div>
-        <div class="row"><span>나의 선택 일치</span><b class="num">${uHits} / ${all.length}</b></div>
-        <div class="badge ${uHits > mHits ? 'ok' : uHits === mHits ? 'ok' : 'bad'}">${uHits > mHits ? '당신이 EHR Agent보다 앞섰습니다' : uHits === mHits ? 'EHR Agent와 같은 점수입니다' : '이번엔 EHR Agent가 앞섰습니다'}</div>
+        <span class="mark">${r.hit ? '맞음' : (r.truth ? '놓침' : '과잉')}</span>
+        <div class="rs"><div class="rs-h">EHR Agent의 추론 근거</div>${reason(r)}</div></div>`).join('')}</div></div>
+      <aside class="score"><div class="big num">${mHits} / ${all.length}<small>퇴원 진단과 일치</small></div>
+        <div class="badge ${mHits === all.length ? 'ok' : 'bad'}">${mHits === all.length ? '최종 목록이 퇴원 진단과 완전히 일치' : `${all.length - mHits}건 불일치 — 학습 단계에서 오류 은행으로`}</div>
         <div class="row"><span>확정 / 배제 / 불확실</span><b>${rows.filter(r => r.verdict === '확정').length} / ${rows.filter(r => r.verdict === '배제').length} / ${rows.filter(r => r.verdict === '불확실').length}</b></div>
+        <div class="row"><span>LLM 추론 판정</span><b class="num">${llmN}회</b></div>
         <div class="row"><span>LLM 호출</span><b class="num">약 ${calls}회</b></div>
         <div class="row"><span>판정 근거 문장</span><b class="num">${Object.values(p.trees).reduce((s, rs) => s + rs.length, 0)}개</b></div>
-        <p class="notice">${mHits === all.length ? '최종 목록이 퇴원 진단과 완전히 일치합니다.' : `EHR Agent가 틀린 ${all.length - mHits}건은 다음 단계에서 오류 은행으로 들어갑니다.`}</p></aside></div></section>`;
-  await wait(300); Router.ready('시간 비교 보기');
+        <div class="rs-calib"><div class="rs-h">LLM 보정 단계의 추론</div><p>${esc(p.calib.text)}</p></div>
+        <button class="btn small tint" id="openall">근거 모두 펼치기</button></aside></div></section>`;
+  $$('.rrow').forEach(el => el.onclick = () => el.classList.toggle('open'));
+  $('#openall').onclick = () => { const anyClosed = $$('.rrow').some(el => !el.classList.contains('open')); $$('.rrow').forEach(el => el.classList.toggle('open', anyClosed)); $('#openall').textContent = anyClosed ? '근거 모두 접기' : '근거 모두 펼치기'; };
+  await wait(300); Router.ready('임상 판독문 보기');
+};
+
+/* ---------- doc (임상 판독문) ---------- */
+SC.doc = () => {
+  const p = S.patient; if (!p) return go('pick');
+  Router.hint('의사가 보는 판독문입니다. 라운드마다 후보 전체의 확률과 요청·결과·판정이 표로 정리됩니다');
+  const cands = p.candidates.map(c => ({ dx: c.dx, p0: c.p }));
+  const rec = [...new Set(p.candidates.flatMap(c => { const rs = p.trees[c.dx] || []; const l = rs[rs.length - 1]; return l && l.verdict === '불확실' ? l.request : []; }))].slice(0, 6);
+  $('#app').innerHTML = `<section class="scene"><div class="head"><div><h2>임상 판독문</h2><p class="lead">의료진이 읽는 형식입니다. 요약 → 초기 평가 → 라운드별 경과 → 최종 소견 순으로, 각 라운드에서 후보 전체의 확률이 어떻게 놓였고 무엇을 요청했는지가 남습니다.</p></div></div>
+    <div class="docwrap">${docHTML({ title: `${p.name} — ${p.axis === '응급실' ? '응급실 도착 초기' : '외래 첫 방문'} 판독`, who: `${p.sex} · ${p.age}세 · ${p.chief || p.summary}`, when: p.window.label, calib: p.calib.text, cands, trees: p.trees, fetchedText: f => f.map(x => typeof x === 'string' ? x : x.name + ' ' + x.text).join('; '), recommend: rec, note: '이 판독문은 실사례를 재구성한 환자에 대한 EHR Agent 동작 시연이며 실제 진료·진단과 무관합니다. 확률·판정 문장은 서버 연결 시 실제 실행 로그로 교체됩니다.' })}
+      <aside class="docside"><button class="btn primary" onclick="window.print()">인쇄 · PDF 저장</button><p class="notice">권고 검사는 불확실로 남은 후보의 마지막 요청 항목입니다. 퇴원 진단 대조는 앞 화면의 결과를 참고하세요.</p></aside></div></section>`;
+  Router.ready('시간 비교 보기');
 };
 
 /* ---------- axis (시간 비교) ---------- */
@@ -592,7 +615,7 @@ SC.end = () => {
       <h2 style="margin-bottom:18px">${p ? p.name + '의 여정을 끝까지 따라오셨습니다' : '체험이 끝났습니다'}</h2>
       <p class="lead" style="margin-bottom:28px">관찰창 기록에서 시작해 확률, 후보, 경로 탐색, 판정, 그리고 학습까지. 응급실 첫 한 시간이든 안과·피부과 외래 첫 방문이든, 같은 엔진이 같은 순서로 돌아갑니다.</p>
       <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn primary big" onclick="go('pick')">다른 환자로 다시</button><button class="btn ghost big" onclick="location.href='../demo2/index.html'">내 아바타 만들러 가기</button><button class="btn ghost" onclick="location.href=HUB_URL">체험 선택으로</button></div></div>
-    <div><div class="steps">${[['1', '관찰창', '첫 시점에 가진 기록만 본다'], ['2', 'FM 확률', '25개 진단군 확률을 한 번에'], ['3', 'LLM 보정', '임상 맥락으로 확률을 고치고 후보를 고른다'], ['4', '경로 탐색', '요청 → 조회 → 재예측 → 판정, 이유를 남긴다'], ['5', '결과', '나의 선택 · EHR Agent · 최종 진단을 대조'], ['6', '학습', '가중치는 고정, 규칙 문서만 통계 게이트를 거쳐 갱신']].map(([n, t, d]) => `<div class="st"><b>${n}</b><span><strong>${t}</strong> — ${d}</span></div>`).join('')}</div>
+    <div><div class="steps">${[['1', '관찰창', '첫 시점에 가진 기록만 본다'], ['2', 'FM 확률', '25개 진단군 확률을 한 번에'], ['3', 'LLM 보정', '임상 맥락으로 확률을 고치고 후보를 고른다'], ['4', '경로 탐색', '요청 → 조회 → 재예측 → 판정, 이유를 남긴다'], ['5', '결과 · 추론', 'EHR Agent의 일치율과 라운드별 판단 근거'], ['6', '학습', '가중치는 고정, 규칙 문서만 통계 게이트를 거쳐 갱신']].map(([n, t, d]) => `<div class="st"><b>${n}</b><span><strong>${t}</strong> — ${d}</span></div>`).join('')}</div>
     <div class="impact">
       <div class="it"><b>${p && p.timeline ? esc(p.timeline.headline.num) : '—'}</b><span>이 사례에서 EHR Agent가 실제 기록보다 먼저 짚은 시간</span></div>
       <div class="it"><b>+4%</b><span>패혈증 검사 1시간 지연당 원내 사망 확률 상승 (NEJM 2017)</span></div>
@@ -601,7 +624,7 @@ SC.end = () => {
   Router.ready('처음으로');
 };
 
-Router.init(['landing', 'why', 'pick', 'window', 'fm', 'calib', 'cands', 'tree', 'guess', 'result', 'axis', 'learn', 'end'], SC);
+Router.init(['landing', 'why', 'pick', 'window', 'fm', 'calib', 'cands', 'tree', 'result', 'doc', 'axis', 'learn', 'end'], SC);
 Idle.start(); go('landing');
 </script>
 </body>

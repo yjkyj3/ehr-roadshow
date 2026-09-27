@@ -140,3 +140,35 @@ const Store = {
   bump(k) { const v = this.get(k, 0) + 1; this.set(k, v); return v; },
 };
 function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }
+
+
+/* ---------- 임상 판독문 (의사용 문서) ---------- */
+function docHTML(o) {
+  // o: { title, who, when, calib, cands:[{dx,p0}], trees:{dx:[rounds]}, fetchedText(fn), recommend:[...], note }
+  const maxR = Math.max(...o.cands.map(c => (o.trees[c.dx] || []).length), 1);
+  const last = dx => { const rs = o.trees[dx] || []; return rs[rs.length - 1]; };
+  const vcls = v => v === '확정' ? 'ok' : v === '배제' ? 'out' : v === '추가 조사' ? 'more' : 'unc';
+  const conf = o.cands.filter(c => last(c.dx) && last(c.dx).verdict === '확정').map(c => c.dx);
+  const excl = o.cands.filter(c => last(c.dx) && last(c.dx).verdict === '배제').map(c => c.dx);
+  const unc = o.cands.filter(c => last(c.dx) && last(c.dx).verdict === '불확실').map(c => c.dx);
+  const today = new Date(); const dstr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+  const roundBlock = r => `<div class="dr"><div class="drh"><span class="drn">라운드 ${r}</span><span class="drs">${o.cands.filter(c => (o.trees[c.dx] || []).length >= r).length}개 후보 진행 · ${o.cands.filter(c => (o.trees[c.dx] || [])[r - 1] && (o.trees[c.dx] || [])[r - 1].judge === 'llm').length}건 LLM 추론</span></div>
+    <table class="dt"><thead><tr><th>후보 진단</th><th>확률 변화</th><th>요청한 검사</th><th>조회 결과</th><th>판정</th></tr></thead><tbody>
+    ${o.cands.map(c => { const rs = o.trees[c.dx] || []; const x = rs[r - 1]; if (!x) { const l = last(c.dx); return `<tr class="done"><td>${esc(c.dx)}</td><td class="num">${l ? fmt(l.after) : '—'}</td><td colspan="2" class="mute">라운드 ${rs.length}에서 종료</td><td><span class="dv ${vcls(l ? l.verdict : '')}">${l ? l.verdict : ''}</span></td></tr>`; }
+      return `<tr><td><b>${esc(c.dx)}</b></td><td class="num"><span class="pb">${fmt(x.before)}</span> → <b class="pa">${fmt(x.after)}</b></td><td>${x.request.length ? esc(x.request.join(', ')) : '<span class="mute">없음</span>'}</td><td>${x.fetched.length ? esc(o.fetchedText(x.fetched)) : '<span class="mute">새 기록 없음</span>'}</td><td><span class="dv ${vcls(x.verdict)}">${x.verdict}</span></td></tr>
+      <tr class="why"><td colspan="5"><span class="jl">${x.judge === 'llm' ? 'LLM 추론' : '임계값 판정'}</span>${esc(x.text)}</td></tr>`; }).join('')}
+    </tbody></table></div>`;
+  return `<article class="doc">
+    <header class="dh"><div><div class="dk">EHR Agent 임상 판독문</div><h1>${esc(o.title)}</h1><div class="dm">${esc(o.who)} · ${esc(o.when)} · 생성 ${dstr}</div></div><div class="dlogo"><img src="${LOGO_KT}" alt="KT"><span>×</span><img src="${LOGO_KU}" alt="고려대"></div></header>
+    <section class="ds"><h2>1. 요약</h2>
+      <div class="dsum"><div class="dsb ok"><b>확정</b>${conf.length ? conf.map(esc).join(', ') : '<span class="mute">없음</span>'}</div><div class="dsb out"><b>배제</b>${excl.length ? excl.map(esc).join(', ') : '<span class="mute">없음</span>'}</div><div class="dsb unc"><b>불확실</b>${unc.length ? unc.map(esc).join(', ') : '<span class="mute">없음</span>'}</div></div>
+      <p class="dp"><b>권고 검사 · 처치</b> ${o.recommend.length ? esc(o.recommend.join(', ')) : '추가 권고 없음'}</p></section>
+    <section class="ds"><h2>2. 초기 평가 (첫 시점 기록 기준)</h2>
+      <table class="dt small"><thead><tr><th>후보 진단</th><th>초기 확률</th><th>첫 라운드 요청 검사</th></tr></thead><tbody>${o.cands.map(c => `<tr><td>${esc(c.dx)}</td><td class="num"><b>${fmt(c.p0)}</b></td><td>${((o.trees[c.dx] || [])[0] || { request: [] }).request.join(', ') || '<span class="mute">—</span>'}</td></tr>`).join('')}</tbody></table>
+      <p class="dp"><b>LLM 보정 근거</b> ${esc(o.calib)}</p></section>
+    <section class="ds"><h2>3. 라운드별 경과</h2>${Array.from({ length: maxR }, (_, i) => roundBlock(i + 1)).join('')}</section>
+    <section class="ds"><h2>4. 최종 소견</h2>
+      <ul class="dl">${o.cands.map(c => { const l = last(c.dx); if (!l) return ''; return `<li><span class="dv ${vcls(l.verdict)}">${l.verdict}</span><b>${esc(c.dx)}</b> <span class="num">(${fmt(c.p0)} → ${fmt(l.after)})</span> — ${esc(l.text)}</li>`; }).join('')}</ul></section>
+    <footer class="df">${esc(o.note)}</footer>
+  </article>`;
+}

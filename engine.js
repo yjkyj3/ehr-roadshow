@@ -192,7 +192,35 @@ const LABS_OUT = [
 ];
 const GAME_TESTS_OUT_IDS = ["a1c", "lipid", "bptrend", "egfr", "tsh", "fundus", "carotid", "ecg"];
 
-const GAME_TESTS = TESTS.filter(t => !t.tree);
+const RELATED = {
+  "패혈증": ["패혈성 쇼크", "폐렴", "요로 감염"], "패혈성 쇼크": ["패혈증", "급성 신부전"], "폐렴": ["패혈증", "천식·COPD", "심부전"],
+  "심부전": ["폐렴", "심부정맥", "급성 심근경색"], "심부정맥": ["심부전", "급성 심근경색", "갑상선 질환"], "급성 심근경색": ["심부전", "심부정맥", "폐색전증"],
+  "고혈압": ["만성 신장질환", "뇌졸중", "지질대사 장애"], "당뇨": ["지질대사 장애", "만성 신장질환", "고혈압"], "지질대사 장애": ["당뇨", "고혈압"],
+  "만성 신장질환": ["급성 신부전", "고혈압", "빈혈"], "급성 신부전": ["만성 신장질환", "패혈성 쇼크", "전해질 이상"], "기타 하기도 질환": ["폐렴", "천식·COPD"],
+  "요로 감염": ["패혈증", "급성 신부전"], "위장관 출혈": ["빈혈", "간질환"], "뇌졸중": ["고혈압", "심부정맥"], "갑상선 질환": ["심부정맥"], "빈혈": ["위장관 출혈", "만성 신장질환"],
+  "전해질 이상": ["급성 신부전", "만성 신장질환"], "간질환": ["위장관 출혈", "알코올 관련"], "췌장염": ["간질환"], "폐색전증": ["급성 심근경색", "폐렴"], "천식·COPD": ["기타 하기도 질환", "폐렴"],
+  "골절·외상": ["빈혈"], "우울·불안": ["갑상선 질환"], "알코올 관련": ["간질환"],
+};
+const GENERIC_TESTS = [
+  { id: "g_hx", name: "과거 진단 · 처방 기록", for: [], tree: true, sim: (f, dx) => { const has = (dx === "고혈압" && f.c_htn) || (dx === "당뇨" && f.c_dm) || (dx === "지질대사 장애" && f.c_lipid) || (dx === "심부전" && f.c_hf) || (dx === "심부정맥" && f.c_af) || (dx === "만성 신장질환" && f.c_ckd) || (dx === "천식·COPD" && f.c_copd) || (dx === "간질환" && f.c_liver); return has ? ["hx_pos", "관련 과거 진단·처방 있음"] : ["hx_none", "관련 과거 기록 없음"]; } },
+  { id: "g_vit", name: "활력징후 추이 (6시간)", for: [], tree: true, sim: (f, dx) => { const worse = f.sbp_lo || f.sbp_vlo || f.hr_vhi || f.spo2_vlo || f.temp_vhi; return worse ? ["vit_worse", "혈압·심박 악화 추세"] : ["vit_stable", "안정 추세"]; } },
+  { id: "g_lab2", name: "추적 혈액검사", for: [], tree: true, sim: (f, dx) => (f.lac_hi || f.lac_vhi || f.wbc_hi || f.crp_hi) ? ["lab_worse", "염증·젖산 상승 지속"] : ["lab_stable", "변화 없음"] },
+];
+// 일반 기록 조회의 약한 가중치
+DX.forEach(d => { W[d].hx_pos = 1.4; W[d].hx_none = -0.4; });
+["패혈증", "패혈성 쇼크", "급성 신부전", "위장관 출혈", "폐색전증"].forEach(d => { W[d].vit_worse = 0.6; W[d].lab_worse = 0.5; W[d].vit_stable = -0.3; W[d].lab_stable = -0.3; });
+["고혈압", "당뇨", "지질대사 장애", "만성 신장질환", "갑상선 질환", "우울·불안", "알코올 관련", "천식·COPD", "기타 하기도 질환", "골절·외상", "뇌졸중", "빈혈", "간질환", "췌장염", "요로 감염", "전해질 이상", "심부전", "심부정맥", "급성 심근경색", "폐렴"].forEach(d => { W[d].vit_stable = W[d].vit_stable || 0; W[d].lab_stable = W[d].lab_stable || 0; });
+// 음성 결과도 확률을 내리도록 약한 음의 가중치
+Object.assign(W["패혈증"], { bc_neg: -1.0, lac_neg: -0.6 }); Object.assign(W["패혈성 쇼크"], { bc_neg: -0.6, lac_neg: -0.9 }); Object.assign(W["급성 신부전"], { lac_neg: -0.4 });
+Object.assign(W["폐렴"], { bc_neg: -0.3 }); Object.assign(W["요로 감염"], { bc_neg: -0.3 });
+const OUTCOMES = {
+  trop: ["trop_hi", "trop_neg"], bnp: ["bnp_hi", "bnp_neg"], bc: ["bc_pos", "bc_neg"], lac2: ["lac_vhi", "lac_neg"], cxr: ["cxr_pos", "cxr_neg"],
+  ecg: ["ecg_st", "ecg_neg"], cr2: ["cr_hi", "cr_neg"], ct: ["ct_pos", "ct_neg"], a1c: ["a1c_hi", "a1c_neg"], lipid: ["lip_hi", "lip_neg"],
+  bptrend: ["bp_hi2", "bp_neg"], egfr: ["egfr_lo", "egfr_neg"], ua: ["ua_pos", "ua_neg"], lipase: ["lipase_pos", "lipase_neg"], lft: ["lft_hi", "lft_neg"],
+  hb2: ["hb_lo2", "hb_neg"], lyte: ["lyte_abn", "lyte_neg"], bone: ["fx_pos", "fx_neg"], pft: ["copd_hx", "copd_neg"], cta: ["pe_pos", "pe_neg"],
+  tsh: ["tsh_abn", "tsh_neg"], fundus: ["fundus_pos", "fundus_neg"], carotid: ["imt_hi", "imt_neg"],
+};
+const GAME_TESTS = ["trop", "bnp", "bc", "lac2", "cxr", "ecg", "ct", "bone"].map(id => TESTS.find(t => t.id === id));
 const GAME_TESTS_OUT = GAME_TESTS_OUT_IDS.map(id => TESTS.find(t => t.id === id));
 
 /* ---------- 엔진 ---------- */
@@ -233,28 +261,38 @@ const Engine = {
       return { id: L.id, name: L.name, value: `${val} ${L.unit}`, feat: feat || null, flag: lvl && lvl !== "neg" ? lvl : null };
     });
   },
-  /** 검사 하나가 상위 후보 확률을 얼마나 움직이는가 */
+  /** 검사의 기대 정보이득: 양성·음성 두 결과를 확률 가중해 후보 확률이 얼마나 움직이는지 */
   gain(s, test, cands) {
     const before = this.probs(s);
-    const [feat, text] = test.sim(this.features(s));
-    const after = this.probs({ ...s, tests: [...(s.tests || []), { id: test.id, feat }] });
-    const move = cands.reduce((sum, d) => sum + Math.abs(after[d] - before[d]), 0);
-    return { feat, text, move, before, after };
+    const f = this.features(s);
+    const [expFeat, text] = test.sim(f, cands[0]);
+    const outs = OUTCOMES[test.id] || [expFeat];
+    const pPos = Math.min(0.85, Math.max(0.15, Math.max(...test.for.map(d => before[d] || 0), 0.15)));
+    const moveOf = feat => { const after = this.probs({ ...s, tests: [...(s.tests || []), { id: test.id, feat }] }); const inC = cands.reduce((sum, d) => sum + Math.abs(after[d] - before[d]), 0); const outC = DX.filter(d => !cands.includes(d)).reduce((sum, d) => sum + Math.abs(after[d] - before[d]), 0); return { after, move: inC + 0.5 * outC }; };
+    const pos = moveOf(outs[0]); const neg = outs[1] ? moveOf(outs[1]) : pos;
+    const move = pPos * pos.move + (1 - pPos) * neg.move;
+    const exp = moveOf(expFeat);
+    return { feat: expFeat, text, move, before, after: exp.after, pPos };
   },
-  /** 진단별 조사 트리 생성 (라운드 최대 3) */
+  /** 진단별 조사 트리 생성 (라운드 최대 3, 라운드마다 1~2개씩 요청) */
   tree(s, dx) {
     const rounds = [];
     let cur = { ...s, tests: [...(s.tests || [])] };
     let p = this.probs(cur)[dx];
     const used = new Set((s.tests || []).map(t => t.id));
     const pool = TESTS.filter(t => t.for.includes(dx) && !used.has(t.id));
-    const plan = [...pool];
+    // 진단 특이 검사가 부족하면 관련 진단군의 검사와 기록 조회로 보강
+    const related = TESTS.filter(t => !t.for.includes(dx) && !used.has(t.id) && t.for.some(d => RELATED[dx] && RELATED[dx].includes(d)));
+    const generic = GENERIC_TESTS.filter(t => !used.has(t.id));
+    const plan = [...pool, ...related.slice(0, 2), ...generic.slice(0, 2)];
+    const prior = (s.tests || []).filter(t => t.feat && !/_neg$/.test(t.feat)).map(t => t.name);
     for (let r = 1; r <= 3; r++) {
-      const req = plan.splice(0, r === 1 ? Math.min(3, plan.length) : Math.min(2, plan.length));
+      const take = r === 1 ? Math.min(2, plan.length) : Math.min(2, plan.length);
+      const req = plan.splice(0, take);
       const before = p;
       const fetched = [];
       req.forEach(t => {
-        const [feat, text] = t.sim(this.features(cur));
+        const [feat, text] = t.sim(this.features(cur), dx);
         cur.tests.push({ id: t.id, feat });
         fetched.push({ name: t.name, text, feat });
       });
@@ -262,25 +300,32 @@ const Engine = {
       const after = p;
       const up = fetched.filter(x => x.feat && !/_neg$/.test(x.feat)).map(x => x.name);
       const down = fetched.filter(x => x.feat && /_neg$/.test(x.feat)).map(x => x.name);
-      const prior = (s.tests || []).filter(t => t.feat && !/_neg$/.test(t.feat)).map(t => t.name);
       const moreLeft = plan.length > 0 && r < 3;
       let verdict, judge, text;
-      if (after >= 0.9) { verdict = "확정"; judge = "auto"; text = `확률 ${after.toFixed(2)}이 확정 임계 0.9에 도달했습니다. 자동 확정.`; }
-      else if (after <= 0.2) { verdict = "배제"; judge = "auto"; text = `확률 ${after.toFixed(2)}은 배제 임계 0.2 이하입니다. 자동 배제.`; }
+      const extreme = after >= 0.95 || after <= 0.08;
+      if (after >= 0.9 && (r >= 2 || extreme)) { verdict = "확정"; judge = "auto"; text = `확률 ${after.toFixed(2)}이 확정 임계 0.9에 도달했습니다. 자동 확정.`; }
+      else if (after <= 0.2 && (r >= 2 || extreme)) { verdict = "배제"; judge = "auto"; text = `확률 ${after.toFixed(2)}은 배제 임계 0.2 이하입니다. 자동 배제.`; }
       else {
         judge = "llm";
         if (req.length === 0) {
           if (after >= 0.65) { verdict = "확정"; text = `새로 요청할 기록이 없습니다. ${prior.length ? '이미 조회한 ' + prior.join('·') + ' 결과와 ' : ''}관찰창 소견이 한 방향을 가리켜 확정합니다.`; }
           else if (after <= 0.32) { verdict = "배제"; text = `더 볼 기록이 없고 지지하는 소견도 없습니다. 확률 ${after.toFixed(2)}에서 배제.`; }
           else { verdict = "불확실"; text = `새로 가져올 기록이 없습니다. 확률 ${after.toFixed(2)}에서 종료하고 불확실로 남깁니다.`; }
-        } else if (after >= 0.72 && (up.length || prior.length)) {
-          verdict = "확정"; text = `${[...up, ...prior].slice(0, 3).join('·')} 결과가 ${dx}에 부합하고 관찰창 소견과 방향이 같습니다. 임계값에는 못 미치지만 근거가 일관되어 확정합니다.`;
-        } else if (after <= 0.32 && (down.length || fetched.every(x => !x.feat))) {
+        } else if (moreLeft && (after >= 0.9 || after <= 0.2)) {
+          verdict = "추가 조사";
+          text = after >= 0.9 ? `${up.join('·') || '조회 결과'}가 ${dx}를 강하게 지지합니다(${after.toFixed(2)}). 다만 첫 라운드라 반대 근거가 없는지 한 번 더 확인합니다.` : `${down.join('·') || '조회 결과'}가 ${dx}와 맞지 않아 ${after.toFixed(2)}까지 내려왔습니다. 놓치는 것이 없도록 한 라운드 더 봅니다.`;
+        } else if (r >= 2 && after >= 0.72 && (up.length || prior.length)) {
+          verdict = "확정"; text = `${[...up, ...prior].slice(0, 3).join('·')} 결과가 ${dx}에 부합하고 관찰창 소견과 방향이 같습니다. 임계값에는 못 미치지만 두 라운드에 걸쳐 근거가 일관되어 확정합니다.`;
+        } else if (r >= 2 && after <= 0.32 && (down.length || fetched.every(x => !x.feat))) {
           verdict = "배제"; text = `${down.length ? down.join('·') + '이 정상 범위이고 ' : '요청한 검사에서 지지하는 소견이 없고 '}확률이 ${after.toFixed(2)}까지 내려왔습니다. 배제.`;
         } else if (moreLeft) {
           verdict = "추가 조사";
           text = Math.abs(after - before) < 0.02 ? `${req.map(t => t.name).join('·')}은 이미 아는 것과 같은 방향이라 확률이 거의 움직이지 않았습니다. 다른 검사를 봅니다.`
             : `${up.length ? up.join('·') + '은 가능성을 올리지만 ' : ''}${down.length ? down.join('·') + '은 반대 방향이라 ' : ''}아직 갈리지 않았습니다. 한 라운드 더 봅니다.`;
+        } else if (after >= 0.72 && (up.length || prior.length)) {
+          verdict = "확정"; text = `${[...up, ...prior].slice(0, 3).join('·')} 결과가 ${dx}에 부합하고 관찰창 소견과 방향이 같습니다. 근거가 일관되어 확정합니다.`;
+        } else if (after <= 0.32) {
+          verdict = "배제"; text = `${down.length ? down.join('·') + '이 정상 범위이고 ' : '지지하는 소견이 없고 '}확률이 ${after.toFixed(2)}까지 내려왔습니다. 배제.`;
         } else {
           verdict = "불확실";
           text = `볼 수 있는 검사를 다 봤지만 확정 근거가 부족합니다. ${up.length ? up.join('·') + '은 지지하고 ' : ''}${down.length ? down.join('·') + '은 반대라 ' : ''}확률 ${after.toFixed(2)}에서 불확실로 남깁니다. 억지로 확정하지 않습니다.`;
@@ -290,6 +335,15 @@ const Engine = {
       if (verdict !== "추가 조사") break;
     }
     return rounds;
+  },
+  /** 라운드별 전체 후보 확률 (판독문용) */
+  roundTable(s, cands, trees) {
+    const maxR = Math.max(...cands.map(d => trees[d].length));
+    const rows = [];
+    for (let r = 1; r <= maxR; r++) {
+      rows.push({ round: r, cands: cands.map(d => { const rs = trees[d]; const x = rs[Math.min(r, rs.length) - 1]; const active = r <= rs.length; return { dx: d, p: x.after, active, request: active ? x.request : [], fetched: active ? x.fetched : [], verdict: active ? x.verdict : rs[rs.length - 1].verdict, text: active ? x.text : '' , judge: active ? x.judge : '' }; }) });
+    }
+    return rows;
   },
   /** 자유 입력 → 사건 카드 */
   guessEvent(text, env) {
