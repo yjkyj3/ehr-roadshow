@@ -79,7 +79,8 @@
 .rs-step.llm .rs-j{color:var(--crimson);border-color:var(--tint-2);background:var(--tint)}
 .rs-step .rs-p{color:var(--ink-2);font-variant-numeric:tabular-nums}
 .rs-step .rs-t{color:var(--ink)}
-.rs-none{font-size:13.5px;color:var(--ink-2);padding:9px 12px;background:var(--bad-t);border-radius:10px}
+.rs-none{font-size:13.5px;color:var(--ink-2);padding:9px 12px;background:var(--surface-2);border-radius:10px}
+.result .mark.dx-y{color:var(--crimson)}.result .mark.dx-n{color:var(--ink-3)}
 .rs-calib{margin-top:6px;padding:14px;border-radius:12px;background:var(--white);border:1px solid var(--line)}
 .rs-calib p{font-size:13.5px;color:var(--ink);line-height:1.6}
 .you{font-size:13.5px;font-weight:600}.you.y{color:var(--crimson)}.you.n{color:var(--ink-3)}
@@ -198,6 +199,32 @@
 .whyline{margin-top:28px;padding:22px 26px;border-radius:var(--r-lg);background:var(--tint);display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
 .whyline .q{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--crimson);white-space:nowrap}
 .whyline .a{font-size:15.5px;color:var(--ink);line-height:1.6}
+/* ---- FM 입력 흐름 ---- */
+.fmflow{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:18px;align-items:start}
+.col{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 18px 14px;min-height:540px;position:relative}
+.col .ch{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line);gap:8px}
+.col .ch b{font-size:15px}.col .ch span{font-size:12px;color:var(--ink-3);text-align:right}
+.col.mid{background:var(--surface);border-color:transparent}
+.recs2{display:flex;flex-direction:column;gap:6px}
+.rec2{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:9px 10px;border-radius:10px;background:var(--surface);opacity:0;transform:translateX(-10px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.rec2.in{opacity:1;transform:none}.rec2.lit{background:var(--tint)}
+.rec2 .t{font-size:12px;color:var(--ink-3)}.rec2 .n{font-size:14.5px}.rec2 .v{font-size:14.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.rec2 .v.high{color:var(--hold)}.rec2 .v.low{color:#1F5FA8}
+.rec2.ch0{background:var(--tint);border-left:3px solid var(--crimson)}.rec2.ch0 .n{font-weight:600}
+.toks{display:flex;flex-direction:column;gap:6px;min-height:300px}
+.tok{display:grid;grid-template-columns:82px 1fr 56px;gap:8px;align-items:center;padding:8px 10px;border-radius:9px;background:var(--white);border:1px solid var(--line);font-size:13px;opacity:0;transform:translateX(-24px);transition:opacity .4s var(--ease),transform .5s var(--spring)}
+.tok.in{opacity:1;transform:none}
+.tok .dm{font-weight:700;color:var(--crimson);font-size:12px;letter-spacing:.02em}
+.tok .cd{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}.tok .cd small{display:block;color:var(--ink-3);font-weight:400;font-size:11.5px}
+.tok .tm{text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tokhead{display:grid;grid-template-columns:82px 1fr 56px;gap:8px;padding:0 10px 6px;font-size:11px;color:var(--ink-3)}
+.enc{margin-top:14px;padding:14px 16px;border-radius:14px;background:var(--ink);color:#fff;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.enc::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transform:translateX(-100%)}
+.enc.run::before{animation:sweep 1.1s var(--ease) infinite}
+.enc b{font-size:14px}.enc span{font-size:12px;color:rgba(255,255,255,.7)}.enc .st{font-size:12px;color:#FF8FA8;font-weight:700}
+.arrows{display:flex;justify-content:center;margin:8px 0 4px;color:var(--crimson);font-size:18px}
+.wall.compact .prow{grid-template-columns:118px 1fr 44px;height:19px}.wall.compact .prow .b{height:8px}.wall.compact .prow .n{font-size:12.5px}.wall.compact .prow .v{font-size:12px}
+@media (max-width:1100px){.fmflow{grid-template-columns:1fr}.col{min-height:0}}
 /* ---- 환자 선택 축 그룹 ---- */
 .axisgrp{margin-bottom:26px}
 .axisgrp .gh{display:flex;align-items:baseline;gap:14px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
@@ -239,13 +266,16 @@
 <script src="../demo_data.js"></script>
 <script src="../omop_data.js"></script>
 <script>
-buildShell({ stages: ["왜 첫 시점인가", "환자 선택", "관찰창", "FM 확률", "LLM 보정", "후보", "경로 탐색", "결과 · 추론", "판독문", "시간 비교", "학습"] });
+buildShell({ stages: ["환자 선택", "먼저 결론", "관찰창", "FM 입력 → 확률", "LLM 보정", "후보", "경로 탐색", "결과 · 추론", "판독문"] });
 let patients = PATIENTS.concat(OMOP_PATIENTS);
 window.loadPatients = json => { patients = json; if (Router.current === 'pick') go('pick'); };
 const S = { patient: null, guess: [] };
 const NOTE = '샘플 케이스로 구성된 화면입니다. 실제 환자 로그는 서버 연결 후 같은 형식으로 교체됩니다.';
 Router.onEnter = (name, idx) => { Router.note(idx ? NOTE : ''); Router.who(S.patient ? `${S.patient.name} · ${S.patient.axis}` : ''); };
 const SC = {};
+const DOMAIN = { '활력': ['Measurement', 'LOINC'], '검사': ['Measurement', 'LOINC'], '처방': ['Drug', 'RxNorm'], '이동': ['Visit', 'CMS'] };
+const codeOf = s => { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return String(3000000 + (h % 900000)); };
+const mins = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 
 /* ---------- landing ---------- */
 SC.landing = () => {
@@ -258,7 +288,7 @@ SC.landing = () => {
       <p class="kicker">EHR Agent · 실사례 환자 따라가기</p>
       <h1>EHR Agent는<br>어떻게<br>판단했을까요?</h1>
       <p class="lead">실사례 환자 여섯 명 중 한 명을 고르세요. 첫 시점의 기록만 보고 EHR Agent가 무엇을 의심하고, 어떤 검사를 먼저 요청하고, 어떻게 확정과 배제를 정하는지 한 화면씩 따라갑니다. 각 판정의 추론 근거까지 읽어 보세요.</p>
-      <div class="cta"><button class="btn primary big" onclick="go('why')">체험 시작</button><button class="btn ghost big" onclick="location.href=HUB_URL">체험 선택으로</button><span class="note">약 5분 · 화면의 버튼으로 진행</span></div>
+      <div class="cta"><button class="btn primary big" onclick="go('pick')">체험 시작</button><button class="btn ghost big" onclick="location.href=HUB_URL">체험 선택으로</button><span class="note">약 5분 · 화면의 버튼으로 진행</span></div>
       ${visits ? `<p class="visits">오늘 이 부스에서 <b>${visits}</b>명이 EHR Agent의 판단을 따라가 봤습니다</p>` : ''}
     </div>
     <div class="preview"><div class="t">파운데이션 모델 · 25개 진단군 확률</div><div class="rows" id="rows"></div>
@@ -272,21 +302,21 @@ SC.landing = () => {
 
 /* ---------- why (왜 필요한가) ---------- */
 SC.why = async () => {
-  Router.hint('시작하기 전에, 왜 첫 시점이 중요한지 숫자 네 개만 보고 가세요');
+  Router.hint('체험을 한 장으로 정리합니다. 왜 첫 시점이 중요한지, 숫자 네 개로');
   const hs = patients.filter(p => p.timeline && p.timeline.headline).map(p => p.timeline.headline.num);
   $('#app').innerHTML = `<section class="scene">
-    <div class="head"><div><h2>왜 첫 시점이 중요할까요?</h2><p class="lead">진단은 기록이 가장 적을 때 시작됩니다. 그런데 결과를 가르는 검사와 처치는 생각보다 늦게 이루어집니다. 이 체험에서는 그 간격을 EHR Agent가 어떻게 좁히는지 직접 보게 됩니다.</p></div></div>
+    <div class="head"><div><h2>왜 첫 시점이 중요한가 — 한 장 정리</h2><p class="lead">방금 따라온 환자에서 본 것처럼, 결과를 가르는 검사와 처치는 생각보다 늦게 이루어집니다. EHR Agent는 그 간격을 첫 시점에서 좁힙니다.</p></div></div>
     <div class="whygrid">
       <div class="wt" style="animation-delay:0ms"><span class="k">한 시간의 값</span><span class="n"><span data-c="4" data-d="0">0</span><small>%</small></span><span class="d">패혈증 검사 완료가 1시간 늦을 때마다 원내 사망 확률이 이만큼 올라갑니다.</span><span class="s">Seymour et al., NEJM 2017 · n≈49,000</span></div>
       <div class="wt" style="animation-delay:120ms"><span class="k">실제 진료의 속도</span><span class="n"><span data-c="38" data-d="0">0</span><small>%</small></span><span class="d">실제 진료 기록에서 항생제가 6시간 안에 시작된 환자의 비율입니다. 젖산 검사가 3시간 안에 이루어진 환자도 68%에 그쳤습니다.</span><span class="s">MIMIC-IV 패혈증·쇼크 188명</span></div>
       <div class="wt" style="animation-delay:240ms"><span class="k">이 체험의 여섯 사례</span><span class="n">${hs[0] || '8.8h'} <small>~</small> ${hs[hs.length - 1] || '10.5일'}</span><span class="d">핵심 근거가 실제 기록에 남기까지 걸린 시간. EHR Agent는 같은 근거를 첫 시점에 요청했습니다.</span><span class="s">응급실 3명 · 외래 3명</span></div>
       <div class="wt dark" style="animation-delay:360ms"><span class="k">어느 병원에서든</span><span class="n"><span data-c="0" data-d="0">0</span><small>회 재학습</small></span><span class="d">FM과 LLM의 가중치는 고정하고 규칙 문서만 학습합니다. OMOP-CDM 공통 스키마 위에서 같은 흐름이 돌아갑니다.</span><span class="s">고려대의료원 CDM 이식 · 9월</span></div>
     </div>
-    <div class="whyline"><span class="q">그래서 지금부터</span><span class="a">응급실 첫 한 시간과 외래 첫 방문, 두 환경의 실사례 환자를 절반씩 놓고 EHR Agent가 무엇을 먼저 짚었는지, 실제 진료보다 얼마나 앞섰는지, 틀렸을 때 어떻게 스스로 고치는지를 한 단계씩 따라갑니다.</span></div>
+    <div class="whyline"><span class="q">정리하면</span><span class="a">응급실 첫 한 시간과 외래 첫 방문, 두 환경에서 같은 엔진이 같은 순서로 돌아갑니다. 첫 시점의 기록만으로 위험을 지목하고, 근거가 부족하면 검사를 먼저 요청하고, 확신이 없으면 불확실로 남깁니다. 틀린 판정은 규칙 문서로 들어가 스스로 고칩니다.</span></div>
   </section>`;
   await wait(250); $$('.wt').forEach((el, i) => setTimeout(() => el.classList.add('on'), i * 140));
   $$('.wt [data-c]').forEach((el, i) => setTimeout(() => countTo(el, 0, +el.dataset.c, 900, +el.dataset.d), 300 + i * 200));
-  Router.ready('환자 고르러 가기');
+  Router.ready('마무리');
 };
 
 /* ---------- pick ---------- */
@@ -299,7 +329,7 @@ SC.pick = () => {
     <div class="axisgrp"><div class="gh"><b>응급실 — 도착 후 첫 한 시간</b><span>MIMIC-IV · 정보가 가장 적은 시점에서 위험을 지목한다</span></div><div class="pick">${er.map(card).join('')}</div></div>
     <div class="axisgrp"><div class="gh"><b>외래 — 첫 방문의 기록</b><span>고려대의료원 OMOP-CDM 생성 데이터 · 다른 과를 다니던 환자에서 대사질환을 먼저 짚는다</span></div><div class="pick">${out.map(card).join('')}</div></div>
   </section>`;
-  $$('.pcard[data-id]').forEach(b => b.onclick = () => { S.patient = patients.find(p => p.id === b.dataset.id); Store.bump('ehr_demo1_visits'); go('window'); });
+  $$('.pcard[data-id]').forEach(b => b.onclick = () => { S.patient = patients.find(p => p.id === b.dataset.id); Store.bump('ehr_demo1_visits'); go('axis'); });
   Router.block('환자를 골라 주세요');
 };
 
@@ -329,15 +359,39 @@ SC.window = async () => {
 /* ---------- fm ---------- */
 SC.fm = async () => {
   const p = S.patient; if (!p) return go('pick');
-  Router.hint('25개 진단의 확률이 한 번에 나옵니다. 어느 진단이 위로 올라오는지 지켜보세요'); $('#skip').style.visibility = 'visible';
+  Router.hint('관찰창 기록 한 줄이 FM 입력 토큰(도메인 · 개념 코드 · 시각)이 되어 인코더에 들어가고, 25개 진단 확률이 다시 계산됩니다'); $('#skip').style.visibility = 'visible';
+  const recs = p.window.records; const n = recs.length; const fm = p.fm;
+  const top5 = Object.entries(fm).sort((a, b) => b[1] - a[1]).slice(0, 5).map(x => x[0]);
+  const prior = {}; Object.keys(fm).forEach(k => prior[k] = 0.04);
+  const probsAt = i => { const o = {}; const k = (i + 1) / n; Object.keys(fm).forEach(dx => o[dx] = +(prior[dx] + (fm[dx] - prior[dx]) * Math.pow(k, 1.4)).toFixed(3)); return o; };
   $('#app').innerHTML = `<section class="scene">
-    <div class="head"><div><h2>FM 확률 — 25개 진단군</h2><p class="lead">기록을 개념 코드·도메인·시각의 열로 바꿔 인코더에 넣고, 25개 진단군 확률을 내는 헤드로 읽습니다. 가중치는 고정, 이 환자로 학습하지 않습니다.</p></div>
-      <div class="fmhead"><span class="badge">입력 ${p.window.records.length}건</span><span class="badge">인코더 고정</span><span class="badge" id="fmstat">추론 중</span></div></div>
-    <div class="wall two" id="wall">${wallHTML(p.fm)}</div></section>`;
-  await wait(500); wallFill($('#wall')); await wait(1200);
-  $('#fmstat').textContent = '추론 완료 · 상위 5개 표시';
-  const top = Object.entries(p.fm).sort((a, b) => b[1] - a[1]).slice(0, 5).map(x => x[0]);
-  $$('.prow').forEach(r => r.classList.toggle('top', top.includes(r.dataset.dx)));
+    <div class="head"><div><h2>FM 입력 → 25개 진단 확률</h2><p class="lead">관찰창의 기록은 그대로 들어가지 않습니다. 한 줄마다 <b>도메인 · 표준 개념 코드 · 시각</b> 세 값으로 바뀌어 인코더에 들어가고, 인코더 위의 헤드가 25개 진단군의 확률을 냅니다. 가중치는 고정이며 이 환자로 학습하지 않습니다.</p></div></div>
+    <div class="fmflow">
+      <div class="col"><div class="ch"><b>① 관찰창 기록</b><span>${esc(p.window.label)}</span></div><div class="recs2" id="recs"></div></div>
+      <div class="col mid"><div class="ch"><b>② FM에 들어가는 형태</b><span>OMOP 표준 어휘로 변환</span></div>
+        <div class="tokhead"><span>도메인</span><span>개념 코드 (어휘 · 원래 이름)</span><span>시각</span></div><div class="toks" id="toks"></div>
+        <div class="arrows">↓</div>
+        <div class="enc" id="enc"><b>EHR 파운데이션 모델 (인코더 + 25개 진단 헤드)</b><span>수십만 명의 입원 기록을 코드 열로 학습 · 가중치 고정</span><span class="st" id="encst">대기</span></div></div>
+      <div class="col"><div class="ch"><b>③ 25개 진단군 확률</b><span id="wst">기록 0건 기준</span></div><div class="wall compact" id="wall">${wallHTML(prior)}</div></div>
+    </div></section>`;
+  if (p.chief) { const c = document.createElement('div'); c.className = 'rec2 ch0'; c.innerHTML = `<span class="t">주증상</span><span class="n">${esc(p.chief)}</span><span></span>`; $('#recs').appendChild(c); requestAnimationFrame(() => c.classList.add('in')); await wait(500); }
+  const wall = $('#wall'); wallFill(wall); _prevProbs = { ...prior };
+  $('#enc').classList.add('run'); $('#encst').textContent = '기록 읽는 중';
+  for (let i = 0; i < n; i++) {
+    const r = recs[i];
+    const row = document.createElement('div'); row.className = 'rec2'; row.innerHTML = `<span class="t num">${r.t}</span><span class="n">${esc(r.name)}</span><span class="v ${r.flag || ''}">${esc(r.value)}</span>`; $('#recs').appendChild(row); requestAnimationFrame(() => row.classList.add('in'));
+    $$('.rec2.lit').forEach(x => x.classList.remove('lit')); row.classList.add('lit');
+    if ($('#recs').children.length > 12) $('#recs').children[1].remove();
+    await wait(240);
+    const [dom, vocab] = DOMAIN[r.kind] || ['Observation', 'SNOMED'];
+    const tk = document.createElement('div'); tk.className = 'tok'; tk.innerHTML = `<span class="dm">${dom}</span><span class="cd">${codeOf(r.name)}<small>${vocab} · ${esc(r.name)}${r.value ? ' · ' + esc(r.value) : ''}</small></span><span class="tm">+${mins(r.t)}분</span>`; $('#toks').appendChild(tk); requestAnimationFrame(() => tk.classList.add('in'));
+    if ($('#toks').children.length > 9) $('#toks').firstChild.remove();
+    await wait(240);
+    const pr = probsAt(i); wallUpdate(wall, pr, i === n - 1 ? top5 : [], true); $('#wst').textContent = `기록 ${i + 1}건 기준`;
+    await wait(220);
+  }
+  $('#enc').classList.remove('run'); $('#encst').textContent = `기록 ${n}건 → 25개 진단 확률 출력 완료 · 상위 5개 표시`;
+  $$('.rec2.lit').forEach(x => x.classList.remove('lit'));
   Router.ready('LLM에게 넘기기');
 };
 
@@ -419,22 +473,21 @@ SC.result = async () => {
   const calls = Object.values(p.trees).reduce((s, rs) => s + rs.length * 2, 0) + 4;
   const llmN = Object.values(p.trees).flat().filter(r => r.judge === 'llm').length;
   const reason = r => {
-    const rs = p.trees[r.dx]; if (!rs) return `<div class="rs-none">후보에 오르지 못해 경로 탐색이 열리지 않았습니다. FM 초기 확률 ${fmt(r.p0)} — 이 놓침이 학습 단계에서 오류 은행으로 들어갑니다.</div>`;
+    const rs = p.trees[r.dx]; if (!rs) return `<div class="rs-none">후보에 오르지 못해 경로 탐색이 열리지 않았습니다. FM 초기 확률 ${fmt(r.p0)}.</div>`;
     return rs.map(x => `<div class="rs-step ${x.judge}"><span class="rs-r">라운드 ${x.round}</span><span class="rs-j">${x.judge === 'llm' ? 'LLM 추론' : '임계값'}</span><span class="rs-p num">${fmt(x.before)} → ${fmt(x.after)}</span><span class="rs-t">${esc(x.text)}</span></div>`).join('');
   };
   $('#app').innerHTML = `<section class="scene">
-    <div class="head"><div><h2>결과 — EHR Agent는 얼마나 맞췄나, 왜 그렇게 판단했나</h2><p class="lead">퇴원 진단은 며칠에서 몇 주 뒤에야 코딩되는 정답입니다. EHR Agent는 관찰창 기록에서 시작해 이 목록에 도달했습니다. 각 진단을 누르면 라운드별 추론 근거가 펼쳐집니다.</p></div></div>
+    <div class="head"><div><h2>결과 — EHR Agent의 결론과 추론 근거</h2><p class="lead">EHR Agent는 관찰창 기록에서 시작해 이 목록에 도달했습니다. 오른쪽 열은 퇴원 시점에 실제로 코딩된 진단 여부입니다. 각 진단을 누르면 라운드별 추론 근거가 펼쳐집니다.</p></div></div>
     <div class="result"><div>
-      <div class="rhead"><span>진단</span><span>초기 → 최종</span><span>EHR Agent</span><span>퇴원 진단 대조</span></div>
-      <div class="rlist">${all.map((r, i) => `<div class="rrow ${r.hit ? 'hit' : 'miss'}" style="animation-delay:${i * 90}ms" data-i="${i}">
-        <span class="dx">${esc(r.dx)}<small>${r.truth ? '퇴원 진단에 있음' : '퇴원 진단에 없음'}</small></span>
+      <div class="rhead"><span>진단</span><span>초기 → 최종</span><span>EHR Agent</span><span>퇴원 진단</span></div>
+      <div class="rlist">${all.map((r, i) => `<div class="rrow" style="animation-delay:${i * 90}ms" data-i="${i}">
+        <span class="dx">${esc(r.dx)}</span>
         <span class="num">${fmt(r.p0)} → ${r.p1 === null ? '—' : fmt(r.p1)}</span>
         <span><span class="chip ${r.verdict === '확정' ? 'crim' : r.verdict === '배제' ? 'out' : r.verdict === '후보 미선정' ? 'bad' : 'hold'}">${r.verdict}</span></span>
-        <span class="mark">${r.hit ? '맞음' : (r.truth ? '놓침' : '과잉')}</span>
+        <span class="mark ${r.truth ? 'dx-y' : 'dx-n'}">${r.truth ? '진단' : '미진단'}</span>
         <div class="rs"><div class="rs-h">EHR Agent의 추론 근거</div>${reason(r)}</div></div>`).join('')}</div></div>
-      <aside class="score"><div class="big num">${mHits} / ${all.length}<small>퇴원 진단과 일치</small></div>
-        <div class="badge ${mHits === all.length ? 'ok' : 'bad'}">${mHits === all.length ? '최종 목록이 퇴원 진단과 완전히 일치' : `${all.length - mHits}건 불일치 — 학습 단계에서 오류 은행으로`}</div>
-        <div class="row"><span>확정 / 배제 / 불확실</span><b>${rows.filter(r => r.verdict === '확정').length} / ${rows.filter(r => r.verdict === '배제').length} / ${rows.filter(r => r.verdict === '불확실').length}</b></div>
+      <aside class="score"><div class="big num">${rows.filter(r => r.verdict === '확정').length}개 확정<small>${rows.filter(r => r.verdict === '배제').length} 배제 · ${rows.filter(r => r.verdict === '불확실').length} 불확실</small></div>
+        <div class="badge ok">퇴원 진단: ${p.truth.map(esc).join(', ')}</div>
         <div class="row"><span>LLM 추론 판정</span><b class="num">${llmN}회</b></div>
         <div class="row"><span>LLM 호출</span><b class="num">약 ${calls}회</b></div>
         <div class="row"><span>판정 근거 문장</span><b class="num">${Object.values(p.trees).reduce((s, rs) => s + rs.length, 0)}개</b></div>
@@ -454,7 +507,7 @@ SC.doc = () => {
   $('#app').innerHTML = `<section class="scene"><div class="head"><div><h2>임상 판독문</h2><p class="lead">의료진이 읽는 형식입니다. 요약 → 초기 평가 → 라운드별 경과 → 최종 소견 순으로, 각 라운드에서 후보 전체의 확률이 어떻게 놓였고 무엇을 요청했는지가 남습니다.</p></div></div>
     <div class="docwrap">${docHTML({ title: `${p.name} — ${p.axis === '응급실' ? '응급실 도착 초기' : '외래 첫 방문'} 판독`, who: `${p.sex} · ${p.age}세 · ${p.chief || p.summary}`, when: p.window.label, calib: p.calib.text, cands, trees: p.trees, fetchedText: f => f.map(x => typeof x === 'string' ? x : x.name + ' ' + x.text).join('; '), recommend: rec, note: '이 판독문은 실사례를 재구성한 환자에 대한 EHR Agent 동작 시연이며 실제 진료·진단과 무관합니다. 확률·판정 문장은 서버 연결 시 실제 실행 로그로 교체됩니다.' })}
       <aside class="docside"><button class="btn primary" onclick="window.print()">인쇄 · PDF 저장</button><p class="notice">권고 검사는 불확실로 남은 후보의 마지막 요청 항목입니다. 퇴원 진단 대조는 앞 화면의 결과를 참고하세요.</p></aside></div></section>`;
-  Router.ready('시간 비교 보기');
+  Router.ready('마무리');
 };
 
 /* ---------- axis (시간 비교) ---------- */
@@ -476,7 +529,7 @@ SC.axis = async () => {
   ];
 
   $('#app').innerHTML = `<section class="scene">
-    <div class="head"><div><h2>시간 비교 — EHR Agent는 언제 위험을 지목했나</h2>
+    <div class="head"><div><h2>먼저 결론 — EHR Agent는 언제 위험을 지목했나</h2>
       <p class="lead">${esc(T.lead)}</p></div></div>
     <div class="axiswrap">
       <div class="card tlcard">
@@ -557,7 +610,7 @@ SC.axis = async () => {
   $('#brk').classList.add('on'); await wait(600); $('#brklab').classList.add('on');
   await wait(250);
   $('#tlsum').textContent = T.summary;
-  Router.ready('학습 축으로');
+  Router.ready('처음부터 따라가기');
 };
 
 /* ---------- learn ---------- */
@@ -603,7 +656,7 @@ SC.learn = () => {
     $('#b4').disabled = true;
     if (L.gate.adopted) { $('#pc2').classList.add('hi'); $('#pc2t').innerHTML = `편집본 v001 — <span class="ins">${esc(L.proposal.text)}</span>`; if (L.holdout) { const h = L.holdout, ok = h.lo > 0; $('#hold').innerHTML = `평가 60명 재검증: Δ ${h.delta >= 0 ? '+' : ''}${h.delta.toFixed(3)} [${h.lo.toFixed(3)}, ${h.hi.toFixed(3)}] → ${ok ? '효과 재현 · 효과 있음으로 보고' : '신뢰구간에 0 포함 · 문서는 남기되 효과 있음으로 보고하지 않음'}`; } }
     else $('#pc2t').textContent = '원본 문서 유지 — 기각된 편집은 반영되지 않습니다. 성능이 뒤로 갈 수 있는 변경을 여기서 막습니다.';
-    Router.ready('마무리');
+    Router.ready(S.standalone ? '체험 선택으로' : '마무리');
   };
   Router.block('왼쪽 카드의 버튼부터 눌러 주세요');
 };
@@ -613,9 +666,9 @@ SC.end = () => {
   const p = S.patient; Router.hint('');
   $('#app').innerHTML = `<section class="scene end"><div>
       <h2 style="margin-bottom:18px">${p ? p.name + '의 여정을 끝까지 따라오셨습니다' : '체험이 끝났습니다'}</h2>
-      <p class="lead" style="margin-bottom:28px">관찰창 기록에서 시작해 확률, 후보, 경로 탐색, 판정, 그리고 학습까지. 응급실 첫 한 시간이든 안과·피부과 외래 첫 방문이든, 같은 엔진이 같은 순서로 돌아갑니다.</p>
-      <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn primary big" onclick="go('pick')">다른 환자로 다시</button><button class="btn ghost big" onclick="location.href='../demo2/index.html'">내 아바타 만들러 가기</button><button class="btn ghost" onclick="location.href=HUB_URL">체험 선택으로</button></div></div>
-    <div><div class="steps">${[['1', '관찰창', '첫 시점에 가진 기록만 본다'], ['2', 'FM 확률', '25개 진단군 확률을 한 번에'], ['3', 'LLM 보정', '임상 맥락으로 확률을 고치고 후보를 고른다'], ['4', '경로 탐색', '요청 → 조회 → 재예측 → 판정, 이유를 남긴다'], ['5', '결과 · 추론', 'EHR Agent의 일치율과 라운드별 판단 근거'], ['6', '학습', '가중치는 고정, 규칙 문서만 통계 게이트를 거쳐 갱신']].map(([n, t, d]) => `<div class="st"><b>${n}</b><span><strong>${t}</strong> — ${d}</span></div>`).join('')}</div>
+      <p class="lead" style="margin-bottom:28px">관찰창 기록에서 시작해 확률, 후보, 경로 탐색, 판정, 판독문까지. 응급실 첫 한 시간이든 안과·피부과 외래 첫 방문이든, 같은 엔진이 같은 순서로 돌아갑니다. 틀린 판정이 규칙 문서로 들어가 스스로 고치는 학습 축은 의료진용 화면으로 따로 볼 수 있습니다.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn primary big" onclick="go('pick')">다른 환자로 다시</button><button class="btn ghost big" onclick="location.href='../demo2/index.html'">진단 체험하기로</button><button class="btn ghost big" onclick="S.standalone=true;go('learn')">의료진용 · 학습 축 보기</button><button class="btn ghost" onclick="location.href=HUB_URL">체험 선택으로</button></div></div>
+    <div><div class="steps">${[['0', '먼저 결론', '언제 위험을 지목했나, 실제보다 얼마나 먼저'], ['1', '관찰창', '첫 시점에 가진 기록만 본다'], ['2', 'FM 확률', '25개 진단군 확률을 한 번에'], ['3', 'LLM 보정', '임상 맥락으로 확률을 고치고 후보를 고른다'], ['4', '경로 탐색', '요청 → 조회 → 재예측 → 판정, 이유를 남긴다'], ['5', '결과 · 추론', 'EHR Agent의 결론과 라운드별 판단 근거'], ['6', '판독문', '의료진 형식의 문서 — 학습 축은 의료진용 화면으로 별도']].map(([n, t, d]) => `<div class="st"><b>${n}</b><span><strong>${t}</strong> — ${d}</span></div>`).join('')}</div>
     <div class="impact">
       <div class="it"><b>${p && p.timeline ? esc(p.timeline.headline.num) : '—'}</b><span>이 사례에서 EHR Agent가 실제 기록보다 먼저 짚은 시간</span></div>
       <div class="it"><b>+4%</b><span>패혈증 검사 1시간 지연당 원내 사망 확률 상승 (NEJM 2017)</span></div>
@@ -624,8 +677,10 @@ SC.end = () => {
   Router.ready('처음으로');
 };
 
-Router.init(['landing', 'why', 'pick', 'window', 'fm', 'calib', 'cands', 'tree', 'result', 'doc', 'axis', 'learn', 'end'], SC);
-Idle.start(); go('landing');
+Router.init(['landing', 'pick', 'axis', 'window', 'fm', 'calib', 'cands', 'tree', 'result', 'doc', 'end'], SC);
+const _n1 = Router.next.bind(Router); Router.next = function () { if (this.current === 'learn') { if (!this.done) { token.fast = true; return; } return S.standalone ? (location.href = HUB_URL) : go('end'); } _n1(); };
+const _q = new URLSearchParams(location.search); if (_q.get('scene') === 'learn') { S.patient = patients.find(p => p.id === (_q.get('p') || 'B')) || patients[0]; S.standalone = true; go('learn'); }
+Idle.start(); if (!S.standalone) go('landing');
 </script>
 </body>
 </html>

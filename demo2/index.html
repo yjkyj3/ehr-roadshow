@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>가상 아바타 만들기 — EHR Agent</title>
+<title>진단 체험하기 — EHR Agent</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
@@ -70,6 +70,17 @@
 .bet .bo{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px}
 .bet .bo .opt{justify-content:center;text-align:center;padding:0 10px;font-size:15px;min-height:62px;line-height:1.25}
 
+.flow{display:flex;align-items:center;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.flow .fs{font-size:13px;padding:7px 14px;border-radius:999px;background:var(--surface-2);color:var(--ink-3);font-weight:600}
+.flow .fs.done{background:var(--tint);color:var(--crimson)}.flow .fs.cur{background:var(--crimson);color:#fff}
+.flow .fa{width:14px;height:1px;background:var(--line-2)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--ink-3);margin-bottom:8px}.legend i{display:inline-block;width:14px;height:8px;border-radius:4px;margin-right:5px;vertical-align:0}.legend .lg-base{background:var(--line-2)}.legend .lg-now{background:var(--crimson)}
+.wall.ghost .prow .b{position:relative;background:transparent;overflow:visible}
+.wall.ghost .prow .b .g{position:absolute;left:0;top:0;height:100%;width:0;background:var(--surface-2);border:1px solid var(--line-2);border-radius:5px;box-sizing:border-box;transition:width .6s var(--spring)}
+.wall.ghost .prow .b i:not(.g){position:relative;z-index:1}
+.calib2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.calib2 .wall-card{grid-row:span 2}
+.speech.out{border-left-color:var(--ink)}
 .reco{display:grid;grid-template-columns:1fr 340px;gap:28px;align-items:start}
 .reco-top{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .rc{background:var(--white);border:1.5px solid var(--line);border-radius:var(--r-lg);padding:22px 20px;display:flex;flex-direction:column;gap:10px;min-height:300px;animation:pop .45s var(--spring) both;position:relative;overflow:hidden}
@@ -85,7 +96,7 @@
 .result{display:grid;grid-template-columns:1fr 420px;gap:40px;align-items:start}
 .result .rrow{grid-template-columns:1fr 150px 130px}
 .score .wi{display:flex;flex-direction:column;gap:8px}
-@media (max-width:1100px){.me,.er,.pick,.result,.reco{grid-template-columns:1fr}.reco-top{grid-template-columns:1fr}.events,.tests{grid-template-columns:repeat(2,1fr)}.cstrip,.bet .bo{grid-template-columns:repeat(3,1fr)}.wall-card{position:static}}
+@media (max-width:1100px){.me,.er,.pick,.result,.reco,.calib2{grid-template-columns:1fr}.reco-top{grid-template-columns:1fr}.events,.tests{grid-template-columns:repeat(2,1fr)}.cstrip,.bet .bo{grid-template-columns:repeat(3,1fr)}.wall-card{position:static}}
 </style>
 </head>
 <body>
@@ -93,8 +104,8 @@
 <script src="../shared.js"></script>
 <script src="../engine.js"></script>
 <script>
-buildShell({ stages: ["아바타 만들기", "무슨 일", "첫 측정", "추천 검사", "경로 탐색", "결과", "판독문", "리포트"] });
-const S = { env: 'er', age: null, sex: null, chronic: [], event: null, freeText: '', vitals: { ...VITAL_DEFAULT }, labs: [], tests: [], userTest: null, agentTest: null, bet: null, trees: null };
+buildShell({ stages: ["체험 설정", "무슨 일", "EHR 기록 → FM 확률", "LLM 보정 → 추론", "추천 검사", "경로 탐색", "결과", "판독문", "리포트"] });
+const S = { env: 'er', calib: null, calibProbs: null, age: null, sex: null, chronic: [], event: null, freeText: '', vitals: { ...VITAL_DEFAULT }, labs: [], tests: [], userTest: null, agentTest: null, bet: null, trees: null };
 const NOTE = '모든 확률과 판정은 브라우저 안의 대리 모델이 계산한 미리보기입니다. 서버 연결 시 실제 FM · LLM 판정으로 교체됩니다.';
 function label(id) { return (AGES.find(a => a.id === id) || SEXES.find(a => a.id === id) || CHRONIC.find(a => a.id === id) || EVENTS.find(a => a.id === id) || EVENTS_OUT.find(a => a.id === id) || { label: id }).label; }
 const EVS = () => S.env === 'out' ? EVENTS_OUT : EVENTS;
@@ -103,6 +114,8 @@ function setEnv(env) { S.env = env; S.event = null; S.freeText = ''; S.vitals = 
 function meLabel() { return S.age ? `${S.env === 'out' ? '외래' : '응급실'} · ${label(S.age)} ${S.sex ? label(S.sex) : ''}${S.chronic.length ? ' · ' + S.chronic.map(label).join(', ') : ' · 지병 없음'}` : ''; }
 Router.onEnter = (name, idx) => { Router.note(idx ? NOTE : ''); Router.who(meLabel()); };
 const SC = {};
+const FLOW = ['EHR 기록', 'FM 확률', 'LLM 보정', 'LLM 추론', '추천 검사'];
+function flowStrip(step) { return `<div class="flow">${FLOW.map((f, i) => `<span class="fs ${i + 1 < step ? 'done' : i + 1 === step ? 'cur' : ''}">${f}</span>`).join('<i class="fa"></i>')}</div>`; }
 
 /* ---------- landing ---------- */
 SC.landing = () => {
@@ -112,14 +125,14 @@ SC.landing = () => {
     <svg class="ecg" viewBox="0 0 1600 160" preserveAspectRatio="none"><path d="${ecgPath()}"/></svg>
     <div>
       <div class="partners"><img src="${LOGO_KT}" alt="KT"><span class="x">×</span><img src="${LOGO_KU}" alt="고려대학교"><span class="lab">BREIN Lab</span></div>
-      <p class="kicker">EHR Agent · 가상 아바타 만들기</p>
-      <h1>내 아바타가<br>병원에 간다면?</h1>
-      <p class="lead">나이와 지병, 그날의 사건을 골라 아바타를 만드세요. 응급실로 보낼지 외래로 보낼지도 당신이 정합니다. 활력징후를 바꿀 때마다 확률이 실시간으로 바뀌고, EHR Agent가 지금 어떤 검사를 추천하는지, 왜 그런지까지 봅니다.</p>
+      <p class="kicker">EHR Agent · 진단 체험하기</p>
+      <h1>진단 체험하기 —<br>내가 병원에 간다면?</h1>
+      <p class="lead">나이와 지병, 그날의 사건을 고르고 응급실 또는 외래로 보냅니다. EHR 기록이 FM 확률이 되고, LLM이 보정하고, 추론을 내는 흐름을 한눈에 봅니다. 핵심은 수치가 정상일 때와 이상일 때 확률이 어떻게 달라지는가입니다.</p>
       <div class="cta"><button class="btn primary big" onclick="setEnv('er');go('me')">응급실에 실려 간다면</button><button class="btn tint big" onclick="setEnv('out');go('me')">외래를 찾아간다면</button><button class="btn ghost big" onclick="location.href=HUB_URL">체험 선택으로</button></div>
       <p class="note" style="margin-top:14px;font-size:13.5px;color:var(--ink-3)">약 3분 · 실제 건강 정보는 입력하지 마세요 · 응급실은 첫 한 시간, 외래는 검진 수치와 첫 방문 기록으로 시작합니다</p>
-      ${st.n ? `<p class="visits">지금까지 <b>${st.n}</b>명이 아바타를 만들어 보냈습니다</p>` : ''}
+      ${st.n ? `<p class="visits">지금까지 <b>${st.n}</b>명이 진단 체험을 해 봤습니다</p>` : ''}
     </div>
-    <div class="preview"><div class="t">이런 아바타를 만들 수 있습니다</div>
+    <div class="preview"><div class="t">이렇게 설정할 수 있습니다</div>
       <div class="opts"><span class="opt on">60세 이상 · 남성</span><span class="opt on">고혈압 · 당뇨</span><span class="opt on">가슴이 조이듯 아프다</span></div>
       <div class="t">그러면 EHR Agent는</div><div class="rows" id="rows"></div>
       <div class="tags"><span class="chip crim">추천 1순위 트로포닌</span><span class="chip hold">심전도</span><span class="chip">젖산</span></div></div></section>`;
@@ -132,15 +145,15 @@ SC.landing = () => {
 
 /* ---------- me ---------- */
 SC.me = () => {
-  Router.hint('가상 아바타를 만드는 단계입니다. 실제 건강 정보 말고 마음대로 골라 보세요. 저장되지 않습니다');
+  Router.hint('가상의 환자를 설정하는 단계입니다. 실제 건강 정보 말고 마음대로 골라 보세요. 저장되지 않습니다');
   $('#app').innerHTML = `<section class="scene">
-    <div class="head"><div><h2>내 아바타를 만들어 볼까요?</h2><p class="lead">나이대와 성별을 고르고, 지병을 최대 3개까지 붙여 보세요. 복용약은 지병에 따라 자동으로 따라옵니다.</p></div></div>
+    <div class="head"><div><h2>진단 체험하기 — 가상의 환자를 설정하세요</h2><p class="lead">나이대와 성별을 고르고, 지병을 최대 3개까지 붙여 보세요. 복용약은 지병에 따라 자동으로 따라옵니다.</p></div></div>
     <div class="me"><div>
       <div class="field"><div class="fl"><b>어디로 가나요</b><span class="sub">응급실은 첫 한 시간, 외래는 검진 수치와 첫 방문 기록</span></div><div class="opts" id="envs"><button class="opt ${S.env !== 'out' ? 'on' : ''}" data-env="er">응급실 <span class="med">도착 후 1시간</span></button><button class="opt ${S.env === 'out' ? 'on' : ''}" data-env="out">가정의학과 외래 <span class="med">첫 방문 · CDM</span></button></div></div>
       <div class="field"><div class="fl"><b>나이대</b></div><div class="opts" id="ages">${AGES.map(a => `<button class="opt" data-k="age" data-v="${a.id}">${a.label}</button>`).join('')}</div></div>
       <div class="field"><div class="fl"><b>성별</b></div><div class="opts" id="sexes">${SEXES.map(a => `<button class="opt" data-k="sex" data-v="${a.id}">${a.label}</button>`).join('')}</div></div>
       <div class="field"><div class="fl"><b>지병</b><span class="sub">최대 3개 · 없으면 그냥 넘어가세요</span></div><div class="opts" id="chronic">${CHRONIC.map(c => `<button class="opt" data-k="c" data-v="${c.id}">${c.label}${c.med ? `<span class="med">${c.med}</span>` : ''}</button>`).join('')}</div></div></div>
-    <aside class="card soft"><h3>차트에 남는 아바타</h3><div id="sum"></div><p class="notice">EHR Agent는 이 정보를 '기록'으로만 봅니다. 나이·성별·과거 진단·처방 코드가 관찰창 첫 줄에 들어갑니다.</p></aside></div></section>`;
+    <aside class="card soft"><h3>차트에 남는 기록</h3><div id="sum"></div><p class="notice">EHR Agent는 이 정보를 '기록'으로만 봅니다. 나이·성별·과거 진단·처방 코드가 관찰창 첫 줄에 들어갑니다.</p></aside></div></section>`;
   const paint = () => {
     $$('#ages .opt').forEach(b => b.classList.toggle('on', b.dataset.v === S.age)); $$('#sexes .opt').forEach(b => b.classList.toggle('on', b.dataset.v === S.sex)); $$('#chronic .opt').forEach(b => b.classList.toggle('on', S.chronic.includes(b.dataset.v)));
     const meds = S.chronic.map(c => CHRONIC.find(x => x.id === c).med).filter(Boolean);
@@ -171,31 +184,60 @@ SC.event = () => {
 SC.er = () => {
   if (!S.event) return go('event');
   Router.hint(S.env === 'out' ? '단계를 누를 때마다 오른쪽 확률이 바로 바뀝니다. 검진 패널이 들어오면 다시 한번 바뀝니다' : '단계를 누를 때마다 오른쪽 확률이 바로 바뀝니다. 채혈 결과가 도착하면 다시 한번 바뀝니다');
-  S.labs = []; S.tests = []; S.userTest = null; S.agentTest = null; S.bet = null; wallReset();
+  S.labs = []; S.tests = []; S.userTest = null; S.agentTest = null; S.bet = null; S.calib = null; S.calibProbs = null; S.trees = null; wallReset();
   $('#app').innerHTML = `<section class="scene">
-    <div class="head"><div><h2>${S.env === 'out' ? '외래 첫 방문 — 첫 측정' : '응급실 도착 — 첫 측정'}</h2><p class="lead">${label(S.event)}. ${S.env === 'out' ? '접수 때 잰 활력징후를 당신이 정합니다. 외래에서는 대개 정상 근처지만, 혈압처럼 하나만 벗어나도 확률이 바뀝니다.' : '간호사가 잰 활력징후를 당신이 정합니다. 숫자를 몰라도 됩니다. 정상인지, 얼마나 벗어났는지만 고르세요.'}</p></div></div>
+    ${flowStrip(2)}
+    <div class="head"><div><h2>${S.env === 'out' ? '외래 첫 방문 — EHR 기록이 FM 확률이 된다' : '응급실 도착 — EHR 기록이 FM 확률이 된다'}</h2><p class="lead">${label(S.event)}. ${S.env === 'out' ? '접수 때 잰 활력징후를 당신이 정합니다. 외래에서는 대개 정상 근처지만, 혈압처럼 하나만 벗어나도 확률이 바뀝니다.' : '간호사가 잰 활력징후를 당신이 정합니다. 숫자를 몰라도 됩니다. 정상인지, 얼마나 벗어났는지만 고르세요.'}</p></div></div>
     <div class="er"><div>
       <div class="dials">${Object.entries(VITALS).map(([k, v]) => `<div class="dial"><div class="dn">${v.label}<small>${v.unit}</small></div><div class="seg ${k}" data-k="${k}"><div class="ind"></div>${v.levels.map((l, i) => `<button data-i="${i}">${l}</button>`).join('')}</div><div class="dv num" id="dv_${k}"></div></div>`).join('')}</div>
       <div class="labs"><div class="lh"><h3>${S.env === 'out' ? '검진 패널 · 첫 방문 혈액검사' : '1시간 안의 채혈 결과'}</h3><button class="btn small primary" id="draw">${S.env === 'out' ? '검진 패널 받기' : '채혈 결과 받기'}</button></div><div class="ll" id="ll"><span class="sub">${S.env === 'out' ? '아직 결과가 없습니다. 검진 결과지와 첫 채혈이 함께 들어옵니다.' : '아직 결과가 없습니다. 도착 40분쯤 첫 결과가 옵니다.'}</span></div></div>
       <div class="whatif"><span class="sub">만약에</span>${S.env === 'out' ? '<button class="btn small ghost" data-wi="sbp:3">혈압이 높게 나왔다면</button><button class="btn small ghost" data-wi="hr:2">맥박이 빨랐다면</button><button class="btn small ghost" data-wi="spo2:1">산소포화도가 약간 낮았다면</button>' : '<button class="btn small ghost" data-wi="spo2:3">산소포화도가 위험 수준이었다면</button><button class="btn small ghost" data-wi="sbp:0">혈압이 매우 낮았다면</button><button class="btn small ghost" data-wi="temp:3">체온이 매우 높았다면</button>'}<button class="btn small tint" data-wi="reset">처음 값으로</button></div></div>
-    <aside class="wall-card card"><div class="wh"><b>FM 확률 · 25개 진단군</b><span class="sub" id="wst">실시간</span></div><div class="wall" id="wall">${wallHTML(Engine.probs(S))}</div><div class="more">노란색은 방금 오른 것, 파란색은 내린 것</div></aside></div></section>`;
+    <aside class="wall-card card"><div class="wh"><b>FM 확률 · 25개 진단군</b><span class="sub" id="wst">실시간</span></div><div class="legend"><span><i class="lg-base"></i>수치가 모두 정상일 때</span><span><i class="lg-now"></i>지금</span></div><div class="wall ghost" id="wall">${wallHTML(Engine.probs(S))}</div><div class="more" id="wdiff"></div></aside></div></section>`;
   const paintDials = () => Object.entries(VITALS).forEach(([k, v]) => { const lv = S.vitals[k]; const seg = $(`.seg[data-k="${k}"]`); seg.className = `seg ${k} l${lv}`; seg.querySelector('.ind').style.left = `calc(${lv * 25}% + 4px)`; $$('button', seg).forEach(b => b.classList.toggle('on', +b.dataset.i === lv)); $(`#dv_${k}`).innerHTML = `${v.vals[lv]}<small>${v.unit}</small>`; });
-  const refresh = () => { const pr = Engine.probs(S); wallUpdate($('#wall'), pr, Engine.top(pr, 5), true); };
+  const baseS = () => ({ ...S, vitals: { ...VITAL_DEFAULT }, labs: [], tests: [] });
+  const paintBase = () => { const bp = Engine.probs(baseS()); $$('#wall .prow').forEach(r => { let g = r.querySelector('.g'); if (!g) { g = document.createElement('i'); g.className = 'g'; r.querySelector('.b').prepend(g); } g.style.width = (bp[r.dataset.dx] * 100) + '%'; }); return bp; };
+  const refresh = () => { const pr = Engine.probs(S); const bp = paintBase(); wallUpdate($('#wall'), pr, Engine.top(pr, 5), true); const diffs = Object.keys(pr).map(k => ({ k, d: pr[k] - bp[k] })).filter(x => Math.abs(x.d) >= 0.05).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 3); $('#wdiff').innerHTML = diffs.length ? '정상 대비 ' + diffs.map(x => `<b>${esc(x.k)}</b> ${x.d > 0 ? '▲' : '▼'} ${Math.abs(x.d).toFixed(2)}`).join(' · ') : '정상 대비 달라진 확률이 없습니다 — 단계를 올려 보세요'; };
   $$('.seg button').forEach(b => b.onclick = () => { S.vitals[b.closest('.seg').dataset.k] = +b.dataset.i; paintDials(); refresh(); });
   $$('[data-wi]').forEach(b => b.onclick = () => { const w = b.dataset.wi; if (w === 'reset') S.vitals = { ...EVS().find(e => e.id === S.event).vit }; else { const [k, i] = w.split(':'); S.vitals[k] = +i; } paintDials(); refresh(); });
   $('#draw').onclick = async () => {
     $('#draw').disabled = true; $('#ll').innerHTML = ''; $('#wst').textContent = '채혈 결과 반영 중';
     for (const l of Engine.labs(S)) { S.labs.push(l); const d = document.createElement('div'); d.className = 'lab ' + (l.flag || ''); d.innerHTML = `${l.name} <b>${l.value}</b>`; $('#ll').appendChild(d); refresh(); await sleep(420); }
-    $('#wst').textContent = '실시간'; $('#draw').textContent = '결과 6건 도착'; { const st = Store.get('ehr_demo2_stats', { n: 0 }); st.n++; Store.set('ehr_demo2_stats', st); } Router.ready('추천 검사 보기');
+    $('#wst').textContent = '실시간'; $('#draw').textContent = '결과 도착'; { const st = Store.get('ehr_demo2_stats', { n: 0 }); st.n++; Store.set('ehr_demo2_stats', st); } Router.ready('LLM 보정 · 추론 보기');
   };
-  paintDials(); wallFill($('#wall')); _prevProbs = Engine.probs(S);
+  paintDials(); wallFill($('#wall')); _prevProbs = Engine.probs(S); paintBase(); refresh();
   Router.block(S.env === 'out' ? '검진 패널을 먼저 받아 주세요' : '채혈 결과를 먼저 받아 주세요');
+};
+
+/* ---------- calib (LLM 보정 → 추론) ---------- */
+SC.calib = async () => {
+  if (!S.labs.length) return go('er');
+  Router.hint('FM 확률에 LLM이 임상 맥락을 얹고, 그 결과를 문장으로 추론합니다'); $('#skip').style.visibility = 'visible';
+  const pr0 = Engine.probs(S); const C = Engine.calib(S); S.calib = C;
+  const probs = { ...pr0 }; wallReset();
+  const GT = S.env === 'out' ? GAME_TESTS_OUT : GAME_TESTS; const cands0 = Engine.top(pr0, 5);
+  const best = GT.map(t => ({ t, ...Engine.gain(S, t, cands0) })).sort((a, b) => b.move - a.move)[0];
+  $('#app').innerHTML = `<section class="scene">
+    ${flowStrip(3)}
+    <div class="head"><div><h2>LLM 보정 → 추론 출력</h2><p class="lead">FM은 확률만 냅니다. LLM이 이상 소견과 과거 진단을 읽어 확률을 보정하고, 지금 가장 가능성이 높은 것과 다음에 볼 검사를 문장으로 냅니다.</p></div></div>
+    <div class="calib2">
+      <div class="speech" id="sp"><div class="who"><i class="think"></i>LLM 보정</div><div class="txt" id="txt"></div></div>
+      <div class="wall-card card"><div class="wh"><b>보정 전 → 후</b><span class="sub" id="wst">FM 확률</span></div><div class="wall" id="wall">${wallHTML(probs, 12)}</div></div>
+      <div class="speech out" id="sp2"><div class="who"><i class="think"></i>LLM 추론 출력</div><div class="txt" id="txt2"></div></div>
+    </div></section>`;
+  wallFill($('#wall')); _prevProbs = { ...probs }; await wait(300);
+  await typeInto($('#txt'), C.text, 48); $('#sp .who i').classList.remove('think');
+  for (const dx of Object.keys(C.changes)) { const row = $(`.prow[data-dx="${CSS.escape(dx)}"]`); if (row) { row.classList.add('changed'); row.querySelector('.delta').textContent = '+' + (C.changes[dx] - probs[dx]).toFixed(2); } probs[dx] = C.changes[dx]; wallUpdate($('#wall'), probs, [], true); await wait(500); }
+  S.calibProbs = probs; const top = Engine.top(probs, 5); wallUpdate($('#wall'), probs, top); $('#wst').textContent = '보정 완료 · 후보 5개';
+  await wait(300);
+  const reasoning = `현재 가장 가능성이 높은 진단은 ${top[0]} (${fmt(probs[top[0]])})이고, 그다음은 ${top[1]} (${fmt(probs[top[1]])})입니다. ${C.abnormal.length ? '근거는 ' + C.abnormal.slice(0, 4).join(', ') + '입니다. ' : '아직 이상 소견이 없어 과거 진단과 주호소에 기대고 있습니다. '}${top[0]}을 확인하거나 배제하려면 ${best.t.name}을 먼저 보는 것이 가장 효율적입니다. 결과에 따라 후보 확률이 최대 ${best.move.toFixed(2)}만큼 바뀝니다.`;
+  await typeInto($('#txt2'), reasoning, 48); $('#sp2 .who i').classList.remove('think');
+  Router.ready('추천 검사 보기');
 };
 
 /* ---------- pick ---------- */
 SC.pick = () => {
   if (!S.labs.length) return go('er');
-  const pr = Engine.probs(S), cands = Engine.top(pr, 5);
+  const pr = S.calibProbs || Engine.probs(S), cands = Engine.top(pr, 5);
   Router.hint('후보 5개의 확률을 가장 크게 바꿀 검사부터 순서대로 보여줍니다');
   const GT = S.env === 'out' ? GAME_TESTS_OUT : GAME_TESTS;
   const gains = GT.map(t => ({ t, ...Engine.gain(S, t, cands) })).sort((a, b) => b.move - a.move);
@@ -203,6 +245,7 @@ SC.pick = () => {
   S.tests = top.slice(0, 1).map(g => ({ id: g.t.id, feat: g.feat, name: g.t.name })); S.agentTest = top[0]; S.userTest = null; S.bet = null;
   const affect = g => cands.map(d => ({ d, delta: g.after[d] - g.before[d] })).filter(x => Math.abs(x.delta) >= 0.03).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 3);
   $('#app').innerHTML = `<section class="scene">
+    ${flowStrip(4)}
     <div class="head"><div><h2>EHR Agent가 추천하는 검사</h2><p class="lead">후보 진단 5개가 정해졌습니다. 지금 검사 하나를 더 볼 수 있다면 어떤 것이 후보를 가장 크게 가르는지, EHR Agent가 확률 변화량이 큰 순서로 골랐습니다. 1순위는 바로 요청되고, 나머지는 경로 탐색에서 후보별로 이어서 요청됩니다.</p></div></div>
     <div class="cstrip">${cands.map((d, i) => `<div class="cs"><div class="dx">${esc(d)}</div><div class="p num">${fmt(pr[d])}</div><span class="sub">후보 ${i + 1}</span></div>`).join('')}</div>
     <div class="reco">
@@ -246,7 +289,7 @@ function finals() { return Object.entries(S.trees).map(([dx, rs]) => { const l =
 SC.result = () => {
   if (!S.trees) return go('tree');
   const rows = finals(); const betHit = S.bet && rows.find(r => r.dx === S.bet)?.verdict === '확정';
-  Router.hint('아바타라 정답은 없습니다. EHR Agent가 어디까지 확신했고 무엇을 불확실로 남겼는지 보세요');
+  Router.hint('가상 설정이라 정답은 없습니다. EHR Agent가 어디까지 확신했고 무엇을 불확실로 남겼는지 보세요');
   $('#app').innerHTML = `<section class="scene">
     <div class="head"><div><h2>결과 — EHR Agent가 ${S.env === 'out' ? '첫 방문에' : '1시간 안에'} 내린 판단</h2><p class="lead">${meLabel()} · ${label(S.event)}. 확정은 목록에 넣고, 배제는 뺐으며, 확신에 못 미친 것은 불확실로 남겼습니다.</p></div></div>
     <div class="result"><div class="rlist">${rows.map((r, i) => `<div class="rrow" style="animation-delay:${i * 80}ms"><span class="dx">${esc(r.dx)}<small>${r.included ? '최종 목록에 포함' : '목록에서 제외'}</small></span><span class="num">${fmt(r.p0)} → ${fmt(r.p1)}</span><span><span class="chip ${r.verdict === '확정' ? 'crim' : r.verdict === '배제' ? 'out' : 'hold'}">${r.verdict}</span></span><span class="why">${esc(r.why)}</span></div>`).join('')}</div>
@@ -254,7 +297,7 @@ SC.result = () => {
       ${S.bet ? `<div class="badge ${betHit ? 'ok' : 'bad'}">${betHit ? `나의 선택 적중 — ${esc(S.bet)}이 확정됐습니다` : `나의 선택 빗나감 — ${esc(S.bet)}은 ${rows.find(r => r.dx === S.bet)?.verdict}`}</div>` : ''}
       <div class="row"><span>EHR Agent 추천 검사</span><b>${S.tests.map(x => x.name).join(' · ')}</b></div>
       <div class="row"><span>LLM 판정 문장</span><b class="num">${Object.values(S.trees).flat().filter(r => r.judge === 'llm').length}개</b></div>
-      <div class="wi"><span class="sub">만약에 다시 해 본다면</span><button class="btn small ghost" id="wi1">지병을 바꿔서 다시</button><button class="btn small ghost" id="wi2">같은 아바타, 활력징후만 바꿔서</button></div></aside></div></section>`;
+      <div class="wi"><span class="sub">만약에 다시 해 본다면</span><button class="btn small ghost" id="wi1">지병을 바꿔서 다시</button><button class="btn small ghost" id="wi2">같은 설정, 활력징후만 바꿔서</button></div></aside></div></section>`;
   $('#wi1').onclick = () => go('me'); $('#wi2').onclick = () => go('er');
   Router.ready('임상 판독문 보기');
 };
@@ -267,9 +310,9 @@ SC.doc = () => {
   const unc = cands.filter(d => S.trees[d][S.trees[d].length - 1].verdict !== '배제');
   const rec = [...new Set([...(S.tests || []).map(x => x.name), ...unc.flatMap(d => { const rs = S.trees[d]; return rs[rs.length - 1].verdict === '불확실' ? rs[rs.length - 1].request : []; })])].slice(0, 6);
   const cal = $('#app'); cal.innerHTML = `<section class="scene"><div class="head"><div><h2>임상 판독문</h2><p class="lead">의료진이 읽는 형식입니다. 요약 → 초기 평가 → 라운드별 경과 → 최종 소견 순으로, 각 라운드에서 후보 전체의 확률이 어떻게 놓였고 무엇을 요청했는지가 남습니다.</p></div></div>
-    <div class="docwrap">${docHTML({ title: `${label(S.event)} — ${envName()} 판독`, who: meLabel(), when: envName(), calib: `첫 시점 활력징후 ${Object.entries(VITALS).map(([k, v]) => v.label + ' ' + v.vals[S.vitals[k]]).join(', ')} · 채혈 ${S.labs.map(l => l.name + ' ' + l.value).join(', ')}`, cands: cands.map(d => ({ dx: d, p0: pr0[d] })), trees: S.trees, fetchedText: f => f.map(x => x.name + ' ' + x.text).join('; '), recommend: rec, note: '이 판독문은 가상 아바타에 대한 EHR Agent 동작 시연이며 실제 진료·진단과 무관합니다. 서버 연결 시 실제 FM·LLM 출력으로 교체됩니다.' })}
-      <aside class="docside"><button class="btn primary" onclick="window.print()">인쇄 · PDF 저장</button><button class="btn ghost" onclick="go('report')">아바타 리포트로</button><p class="notice">권고 검사는 1순위 추천 검사와, 불확실로 남은 후보의 마지막 요청 항목을 모았습니다.</p></aside></div></section>`;
-  Router.ready('아바타 리포트');
+    <div class="docwrap">${docHTML({ title: `${label(S.event)} — ${envName()} 판독`, who: meLabel(), when: envName(), calib: `첫 시점 활력징후 ${Object.entries(VITALS).map(([k, v]) => v.label + ' ' + v.vals[S.vitals[k]]).join(', ')} · 채혈 ${S.labs.map(l => l.name + ' ' + l.value).join(', ')}`, cands: cands.map(d => ({ dx: d, p0: pr0[d] })), trees: S.trees, fetchedText: f => f.map(x => x.name + ' ' + x.text).join('; '), recommend: rec, note: '이 판독문은 가상 환자 설정에 대한 EHR Agent 동작 시연이며 실제 진료·진단과 무관합니다. 서버 연결 시 실제 FM·LLM 출력으로 교체됩니다.' })}
+      <aside class="docside"><button class="btn primary" onclick="window.print()">인쇄 · PDF 저장</button><button class="btn ghost" onclick="go('report')">체험 리포트로</button><p class="notice">권고 검사는 1순위 추천 검사와, 불확실로 남은 후보의 마지막 요청 항목을 모았습니다.</p></aside></div></section>`;
+  Router.ready('체험 리포트');
 };
 
 /* ---------- report ---------- */
@@ -277,14 +320,14 @@ SC.report = () => {
   if (!S.trees) return go('tree');
   Router.hint('카드를 저장해 가져가세요. 개인 정보는 담기지 않습니다'); const rows = finals();
   $('#app').innerHTML = `<section class="scene">
-    <div class="head"><div><h2>아바타 리포트</h2><p class="lead">가상 아바타가 첫 시점의 기록으로 EHR Agent에게 어떻게 보였는지 한 장으로.</p></div></div>
+    <div class="head"><div><h2>체험 리포트</h2><p class="lead">설정한 가상 환자가 첫 시점의 기록으로 EHR Agent에게 어떻게 보였는지 한 장으로.</p></div></div>
     <div class="report"><canvas id="cv" width="1400" height="820"></canvas>
-      <div class="acts"><button class="btn primary big" id="save">카드 이미지 저장</button><button class="btn ghost" onclick="go('me')">다른 아바타로 다시</button><button class="btn ghost" onclick="setEnv(S.env === 'out' ? 'er' : 'out'); go('me')">${S.env === 'out' ? '이번엔 응급실로' : '이번엔 외래로'}</button><button class="btn ghost" onclick="location.href='../demo1/index.html'">실사례 환자 따라가기</button><button class="btn ghost" onclick="location.href=HUB_URL">체험 선택으로</button>
-        <p class="notice">이 카드는 가상 아바타에 대한 EHR Agent 동작 시연이며 실제 진료·진단과 무관합니다. 입력한 내용은 저장되지 않습니다.</p></div></div></section>`;
+      <div class="acts"><button class="btn primary big" id="save">카드 이미지 저장</button><button class="btn ghost" onclick="go('me')">다른 설정으로 다시</button><button class="btn ghost" onclick="setEnv(S.env === 'out' ? 'er' : 'out'); go('me')">${S.env === 'out' ? '이번엔 응급실로' : '이번엔 외래로'}</button><button class="btn ghost" onclick="location.href='../demo1/index.html'">실사례 환자 따라가기</button><button class="btn ghost" onclick="location.href=HUB_URL">체험 선택으로</button>
+        <p class="notice">이 카드는 가상 환자 설정에 대한 EHR Agent 동작 시연이며 실제 진료·진단과 무관합니다. 입력한 내용은 저장되지 않습니다.</p></div></div></section>`;
   const c = $('#cv'), x = c.getContext('2d'); const serif = '"Noto Serif KR","Nanum Myeongjo",serif', sans = '"Pretendard Variable",Pretendard,-apple-system,sans-serif';
   x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, 1400, 820); x.fillStyle = '#8A1538'; x.fillRect(0, 0, 1400, 8);
   x.fillStyle = '#8B8E96'; x.font = `500 20px ${sans}`; x.fillText('KT × 고려대학교 BREIN Lab · EHR Agent 체험', 64, 72);
-  x.fillStyle = '#17171B'; x.font = `700 48px ${serif}`; x.fillText('아바타 리포트', 64, 134);
+  x.fillStyle = '#17171B'; x.font = `700 48px ${serif}`; x.fillText('진단 체험 리포트', 64, 134);
   x.fillStyle = '#55585F'; x.font = `400 24px ${sans}`; x.fillText(meLabel(), 64, 180); x.fillText(`${envName()} · ${label(S.event)}`, 64, 214);
   x.fillStyle = '#8B8E96'; x.font = `400 19px ${sans}`; x.fillText((S.env === 'out' ? '접수 시 ' : '도착 시 ') + Object.entries(VITALS).map(([k, v]) => `${v.label} ${v.vals[S.vitals[k]]}`).join('   '), 64, 252);
   x.strokeStyle = '#E3E4E9'; x.beginPath(); x.moveTo(64, 284); x.lineTo(1336, 284); x.stroke();
@@ -295,12 +338,12 @@ SC.report = () => {
   y += 18;
   const llm = Object.values(S.trees).flat().find(r => r.judge === 'llm');
   if (llm) { x.fillStyle = '#55585F'; x.font = `600 20px ${sans}`; x.fillText('판정 근거 한 줄', rx, y); y += 32; x.fillStyle = '#17171B'; x.font = `400 19px ${sans}`; let line = ''; for (const ch of llm.text) { const t = line + ch; if (x.measureText(t).width > 560) { x.fillText(line, rx, y); line = ch; y += 28; if (y > 740) break; } else line = t; } x.fillText(line, rx, y); }
-  x.fillStyle = '#8B8E96'; x.font = `400 16px ${sans}`; x.fillText('가상 아바타에 대한 EHR Agent 동작 시연입니다. 실제 진료·진단과 무관하며 개인 정보는 저장되지 않습니다.', 64, 784);
-  $('#save').onclick = () => { const a = document.createElement('a'); a.download = 'ehr-agent-avatar-report.png'; a.href = c.toDataURL('image/png'); a.click(); };
+  x.fillStyle = '#8B8E96'; x.font = `400 16px ${sans}`; x.fillText('가상 환자 설정에 대한 EHR Agent 동작 시연입니다. 실제 진료·진단과 무관하며 개인 정보는 저장되지 않습니다.', 64, 784);
+  $('#save').onclick = () => { const a = document.createElement('a'); a.download = 'ehr-agent-report.png'; a.href = c.toDataURL('image/png'); a.click(); };
   Router.ready('처음으로');
 };
 
-Router.init(['landing', 'me', 'event', 'er', 'pick', 'tree', 'result', 'doc', 'report'], SC);
+Router.init(['landing', 'me', 'event', 'er', 'calib', 'pick', 'tree', 'result', 'doc', 'report'], SC);
 const _origNext = Router.next.bind(Router); Router.next = function () { if (this.current === 'landing') { setEnv(S.env || 'er'); } _origNext(); };
 Idle.start(); go('landing');
 </script>

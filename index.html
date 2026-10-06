@@ -13,10 +13,10 @@
 body{overflow:auto;display:block}
 #wm{opacity:.06}
 #wm2{position:fixed;left:-30px;top:130px;width:360px;opacity:.05;pointer-events:none;z-index:0;filter:grayscale(1)}
-.hub{min-height:100vh;padding:44px 56px;max-width:1360px;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:40px;position:relative}
+.hub{min-height:100vh;padding:36px 56px 48px;max-width:1360px;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:28px;position:relative}
 .hub .partners{display:flex;align-items:center;gap:18px}
 .hub .partners img{height:38px}.hub .partners .x{font-family:var(--serif);font-size:22px;color:var(--ink-3)}.hub .partners .lab{font-family:var(--serif);font-size:20px;padding-left:18px;border-left:1px solid var(--line-2)}
-.hub h1{max-width:34ch;font-size:clamp(32px,3.8vw,50px)}
+.hub h1{max-width:34ch;font-size:clamp(30px,3.4vw,44px)}
 .hub .lead{font-size:18px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .exp{width:100%;text-align:left;background:var(--white);border:1.5px solid var(--line);border-radius:24px;padding:34px;display:flex;flex-direction:column;gap:16px;min-height:300px;position:relative;overflow:hidden;transition:transform .15s var(--ease),border-color .2s}
@@ -26,11 +26,27 @@ body{overflow:auto;display:block}
 .exp .t{font-family:var(--serif);font-size:32px;font-weight:700;line-height:1.25}
 .exp .d{font-size:16px;color:var(--ink-2);line-height:1.6}
 .exp .m{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+.why{margin-top:-10px}
+.why .wh{display:flex;align-items:baseline;gap:14px;margin-bottom:12px;flex-wrap:wrap}.why .wh b{font-family:var(--serif);font-size:20px}.why .wh span{font-size:14px;color:var(--ink-2)}
+.wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.wt{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px 20px 16px;display:flex;flex-direction:column;gap:6px;min-height:170px;position:relative;overflow:hidden}
+.wt::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--crimson)}
+.wt .k{font-size:12.5px;color:var(--crimson);font-weight:700}
+.wt .n{font-family:var(--serif);font-size:40px;font-weight:700;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em}.wt .n small{font-size:16px;margin-left:3px}
+.wt .d{font-size:13.5px;color:var(--ink-2);line-height:1.5}.wt .s{font-size:11.5px;color:var(--ink-3);margin-top:auto}
+.wt.dark{background:var(--ink);border-color:var(--ink)}.wt.dark .n,.wt.dark .d{color:#fff}.wt.dark .k{color:#FF8FA8}.wt.dark .s{color:rgba(255,255,255,.55)}.wt.dark::before{background:#FF8FA8}
+@media (max-width:1000px){.wgrid{grid-template-columns:repeat(2,1fr)}}
 .strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:-16px}
 .strip .s{display:flex;align-items:baseline;gap:12px;padding:14px 18px;border-radius:14px;background:var(--surface)}
 .strip .s b{font-family:var(--serif);font-size:28px;color:var(--crimson);line-height:1;white-space:nowrap}
 .strip .s span{font-size:13.5px;color:var(--ink-2);line-height:1.45}
 @media (max-width:1000px){.strip{grid-template-columns:1fr}}
+.learnbox{display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:18px;align-items:center;padding:18px 22px;border-radius:16px;border:1px solid var(--line);background:var(--white);margin-top:-18px}
+.learnbox .lb-k{display:block;font-size:12.5px;font-weight:700;color:var(--crimson);margin-bottom:4px}
+.learnbox .lb-l b{font-size:14.5px;line-height:1.5;font-weight:600}
+.learnbox .lb-steps{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.learnbox .lb-steps span{font-size:12.5px;padding:6px 10px;border-radius:999px;background:var(--surface);color:var(--ink-2);font-weight:600;white-space:nowrap}.learnbox .lb-steps i{width:10px;height:1px;background:var(--line-2)}
+.learnbox .lb-r{display:flex;flex-direction:column;gap:8px;align-items:flex-end;text-align:right}
+@media (max-width:1000px){.learnbox{grid-template-columns:1fr}.learnbox .lb-r{align-items:flex-start;text-align:left}}
 .foot{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink-3);flex-wrap:wrap;gap:12px}
 .ecg2{position:absolute;left:0;right:0;top:47%;height:160px;pointer-events:none;z-index:-1;opacity:.35}
 .ecg2 path{fill:none;stroke:var(--crimson);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:4000;stroke-dashoffset:4000;animation:draw 3.4s var(--ease) .3s forwards}
@@ -45,16 +61,25 @@ body{overflow:auto;display:block}
   <div><p class="kicker" style="color:var(--crimson);font-weight:600;margin-bottom:14px">KT–고려대 AICT 공동연구센터</p>
     <h1>환자의 기록을 바탕으로<br>의사의 판단과 검사를 보조하는<br>EHR Agent</h1>
     <p class="lead" style="margin-top:16px">응급실 첫 한 시간, 외래 첫 방문. 기록이 가장 적은 순간에 EHR Agent가 무엇을 보고 무엇을 먼저 요청하는지, 그리고 틀렸을 때 어떻게 스스로 고치는지 직접 체험해 보세요.</p></div>
-  <div class="strip">
-    <div class="s"><b>+4%</b><span>패혈증 검사 완료 1시간 지연당 원내 사망 확률 상승 (NEJM 2017)</span></div>
-    <div class="s"><b>8.8h ~ 17.5일</b><span>실사례 환자 여섯 명에서 핵심 근거가 실제 기록에 남기까지 걸린 시간 — EHR Agent는 첫 시점에 요청</span></div>
-    <div class="s"><b>0회</b><span>병원이 바뀌어도 재학습 없음 — 가중치 고정, 문서만 학습, OMOP-CDM 공통 스키마</span></div>
+  <div class="why">
+    <div class="wh"><b>왜 첫 시점이 중요한가</b><span>진단은 기록이 가장 적을 때 시작되지만, 결과를 가르는 검사와 처치는 생각보다 늦게 이루어집니다.</span></div>
+    <div class="wgrid">
+      <div class="wt"><span class="k">한 시간의 값</span><span class="n">4<small>%</small></span><span class="d">패혈증 검사 완료가 1시간 늦을 때마다 원내 사망 확률이 이만큼 올라갑니다.</span><span class="s">Seymour et al., NEJM 2017</span></div>
+      <div class="wt"><span class="k">실제 진료의 속도</span><span class="n">38<small>%</small></span><span class="d">실제 진료 기록에서 항생제가 6시간 안에 시작된 환자의 비율. 젖산 3시간 내 시행도 68%에 그쳤습니다.</span><span class="s">MIMIC-IV 패혈증·쇼크 188명</span></div>
+      <div class="wt"><span class="k">이 체험의 여섯 사례</span><span class="n">8.8h <small>~</small> 17.5일</span><span class="d">핵심 근거가 실제 기록에 남기까지 걸린 시간. EHR Agent는 같은 근거를 첫 시점에 요청했습니다.</span><span class="s">응급실 3명 · 외래 3명</span></div>
+      <div class="wt dark"><span class="k">어느 병원에서든</span><span class="n">0<small>회 재학습</small></span><span class="d">FM과 LLM의 가중치는 고정하고 규칙 문서만 학습합니다. OMOP-CDM 공통 스키마 위에서 같은 흐름이 돌아갑니다.</span><span class="s">고려대의료원 CDM 이식</span></div>
+    </div>
+  </div>
+  <div class="learnbox">
+    <div class="lb-l"><span class="lb-k">자기 진화 — 학습 축</span><b>틀린 판정은 규칙 문서로 들어가고, 통계 검정을 통과한 편집만 다음 환자에 반영됩니다.</b></div>
+    <div class="lb-steps"><span>① 오류 은행</span><i></i><span>② 규칙 문서 한 줄 편집</span><i></i><span>③ 통계 게이트 (40명 짝 비교)</span><i></i><span>④ 통과한 편집만 반영</span></div>
+    <div class="lb-r"><span class="sub">FM·LLM 가중치는 고정 · 문서만 학습 · 병원이 바뀌어도 재학습 없음</span><button class="btn small tint" onclick="location.href='demo1/index.html?scene=learn'">의료진용 · 학습 축 체험 열기</button></div>
   </div>
   <div class="two">
-    <button class="exp" onclick="location.href='demo1/index.html'"><span class="k">실사례 환자 따라가기 · 약 5분</span><span class="t">EHR Agent는<br>어떻게 판단했을까요?</span><span class="d">응급실에 실려 온 환자부터 안과·피부과 외래를 다니던 환자까지, 실사례 환자 여섯 명 중 한 명을 고르세요. 기록이 들어오고, 확률이 바뀌고, 검사를 요청하고, 판정이 찍히는 과정을 눈앞에서 따라갑니다. 마지막엔 EHR Agent가 얼마나 맞췄는지와 라운드별 추론 근거를 봅니다.</span><span class="m"><span class="chip crim">응급실 · 외래</span><span class="chip">퇴원 진단 대조</span><span class="chip">자기 진화 · 학습 게이트</span></span></button>
-    <button class="exp" onclick="location.href='demo2/index.html'"><span class="k">가상 아바타 만들기 · 약 3분</span><span class="t">내 아바타가<br>병원에 간다면?</span><span class="d">나이와 지병, 그날의 사건을 고르면 아바타가 만들어집니다. 응급실로 보낼지 외래로 보낼지도 당신이 정합니다. 활력징후를 돌릴 때마다 확률이 실시간으로 바뀌고, EHR Agent가 지금 어떤 검사를 추천하는지 그 이유와 함께 봅니다.</span><span class="m"><span class="chip crim">응급실 · 외래</span><span class="chip">판단 보조</span><span class="chip">추천 검사</span><span class="chip">아바타 리포트 카드</span></span></button>
+    <button class="exp" onclick="location.href='demo1/index.html'"><span class="k">실사례 환자 따라가기 · 약 5분</span><span class="t">EHR Agent는<br>어떻게 판단했을까요?</span><span class="d">응급실에 실려 온 환자부터 안과·피부과 외래를 다니던 환자까지, 실사례 환자 여섯 명 중 한 명을 고르세요. 기록이 들어오고, 확률이 바뀌고, 검사를 요청하고, 판정이 찍히는 과정을 눈앞에서 따라갑니다. 결론을 먼저 본 뒤 과정을 따라가고, 마지막엔 라운드별 추론 근거와 판독문을 봅니다.</span><span class="m"><span class="chip crim">응급실 · 외래</span><span class="chip">퇴원 진단 대조</span><span class="chip">자기 진화 · 학습 게이트</span></span></button>
+    <button class="exp" onclick="location.href='demo2/index.html'"><span class="k">진단 체험하기 · 약 3분</span><span class="t">진단 체험하기 —<br>내가 병원에 간다면?</span><span class="d">나이와 지병, 그날의 사건을 고르고 응급실 또는 외래로 보냅니다. EHR 기록 → FM 확률 → LLM 보정 → LLM 추론으로 이어지는 흐름을 보고, 수치가 정상일 때와 이상일 때 확률이 어떻게 달라지는지 직접 확인합니다.</span><span class="m"><span class="chip crim">응급실 · 외래</span><span class="chip">판단 보조</span><span class="chip">추천 검사</span><span class="chip">체험 리포트</span></span></button>
   </div>
-  <div class="foot"><span>모든 화면은 재구성 사례와 가상 아바타에 대한 EHR Agent 동작 시연이며 실제 진료·진단과 무관합니다. 개인 정보는 입력받지 않습니다.</span><button class="btn small ghost" onclick="document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()">전체화면</button></div>
+  <div class="foot"><span>모든 화면은 재구성 사례와 가상 체험에 대한 EHR Agent 동작 시연이며 실제 진료·진단과 무관합니다. 개인 정보는 입력받지 않습니다.</span><button class="btn small ghost" onclick="document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()">전체화면</button></div>
 </section>
 <script src="logos.js"></script>
 <script>

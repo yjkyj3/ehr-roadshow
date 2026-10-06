@@ -345,6 +345,22 @@ const Engine = {
     }
     return rows;
   },
+  /** LLM 보정·추론 문장 생성 (대리) : 이상 소견을 읽고 상위 후보를 보정 */
+  calib(s) {
+    const f = this.features(s); const pr = this.probs(s); const top = this.top(pr, 5);
+    const ab = [];
+    Object.entries(s.vitals || {}).forEach(([k, lv]) => { const v = VITALS[k]; const ft = v.feat[lv]; if (ft) ab.push(`${v.label} ${v.vals[lv]}${v.unit}`); });
+    (s.labs || []).forEach(l => { if (l.flag) ab.push(`${l.name} ${l.value}`); });
+    const chron = (s.chronic || []).map(c => CHRONIC.find(x => x.id === c).label);
+    const changes = {}; const notes = [];
+    const support = { "패혈증": ["temp_hi", "temp_vhi", "wbc_hi", "crp_hi", "lac_hi", "lac_vhi", "hr_vhi"], "패혈성 쇼크": ["sbp_lo", "sbp_vlo", "lac_vhi"], "급성 심근경색": ["e_chest", "c_dm", "c_htn", "c_lipid", "age_old"], "심부전": ["c_hf", "e_edema", "spo2_lo", "e_dyspnea"], "폐렴": ["e_fever", "spo2_lo", "spo2_vlo", "rr_hi", "crp_hi"], "당뇨": ["glu_hi", "glu_vhi", "c_dm", "o_thirst"], "고혈압": ["sbp_hi", "c_htn", "o_headache"], "지질대사 장애": ["lip_hi", "c_lipid"], "만성 신장질환": ["cr_hi", "c_ckd"], "급성 신부전": ["cr_hi", "sbp_vlo"], "뇌졸중": ["e_conf", "c_af", "sbp_hi"], "심부정맥": ["c_af", "hr_vhi"], "갑상선 질환": ["o_fatigue", "hr_vhi"], "빈혈": ["hb_lo", "o_fatigue"], "골절·외상": ["e_trauma"], "폐색전증": ["spo2_lo", "e_dyspnea", "e_chest"] };
+    top.slice(0, 3).forEach(d => { const n = (support[d] || []).filter(k => f[k]).length; if (n >= 2 && pr[d] < 0.9) { changes[d] = Math.min(0.95, +(pr[d] + 0.06 + 0.02 * (n - 2)).toFixed(2)); notes.push(`${d}는 ${n}개 소견이 같은 방향이라 ${fmt(pr[d])} → ${fmt(changes[d])}로 올립니다`); } });
+    const noAb = ab.length === 0;
+    const text = noAb
+      ? `${chron.length ? '과거 진단(' + chron.join(', ') + ')은 있지만 ' : ''}첫 측정과 검사에 정상 범위를 벗어난 값이 없습니다. 지금 기록만으로는 확률을 움직일 임상 근거가 없어 FM 확률을 그대로 둡니다. 상위 5개를 후보로 올리되, 추가 검사로 갈라야 합니다.`
+      : `이상 소견은 ${ab.join(', ')}입니다.${chron.length ? ' 과거 진단으로 ' + chron.join(', ') + '이 있습니다.' : ''} ${notes.length ? notes.join('. ') + '.' : '소견이 한 방향으로 모이지 않아 FM 확률은 그대로 두고 후보에서 가립니다.'} 가장 가능성이 높은 것은 ${top[0]}이고, 이를 확인하거나 배제하려면 지금 검사가 필요합니다.`;
+    return { text, changes, abnormal: ab, top };
+  },
   /** 자유 입력 → 사건 카드 */
   guessEvent(text, env) {
     const t = (text || "").toLowerCase();
