@@ -201,7 +201,7 @@
 .whyline .a{font-size:15.5px;color:var(--ink);line-height:1.6}
 /* ---- FM 입력 흐름 ---- */
 .fmflow{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:18px;align-items:start}
-.col{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 18px 14px;min-height:540px;position:relative}
+.col{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 16px 12px;min-height:0;position:relative}
 .col .ch{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line);gap:8px}
 .col .ch b{font-size:15px}.col .ch span{font-size:12px;color:var(--ink-3);text-align:right}
 .col.mid{background:var(--surface);border-color:transparent}
@@ -211,18 +211,22 @@
 .rec2 .t{font-size:12px;color:var(--ink-3)}.rec2 .n{font-size:14.5px}.rec2 .v{font-size:14.5px;font-weight:600;font-variant-numeric:tabular-nums}
 .rec2 .v.high{color:var(--hold)}.rec2 .v.low{color:#1F5FA8}
 .rec2.ch0{background:var(--tint);border-left:3px solid var(--crimson)}.rec2.ch0 .n{font-weight:600}
-.toks{display:flex;flex-direction:column;gap:6px;min-height:300px}
-.tok{display:grid;grid-template-columns:82px 1fr 56px;gap:8px;align-items:center;padding:8px 10px;border-radius:9px;background:var(--white);border:1px solid var(--line);font-size:13px;opacity:0;transform:translateX(-24px);transition:opacity .4s var(--ease),transform .5s var(--spring)}
+.toks{display:flex;flex-direction:column;gap:6px;min-height:0}
+.tok{display:grid;grid-template-columns:82px 1fr 56px;gap:8px;align-items:center;padding:6px 10px;border-radius:9px;background:var(--white);border:1px solid var(--line);font-size:13px;opacity:0;transform:translateX(-24px);transition:opacity .4s var(--ease),transform .5s var(--spring)}
 .tok.in{opacity:1;transform:none}
 .tok .dm{font-weight:700;color:var(--crimson);font-size:12px;letter-spacing:.02em}
 .tok .cd{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}.tok .cd small{display:block;color:var(--ink-3);font-weight:400;font-size:11.5px}
 .tok .tm{text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .tokhead{display:grid;grid-template-columns:82px 1fr 56px;gap:8px;padding:0 10px 6px;font-size:11px;color:var(--ink-3)}
-.enc{margin-top:14px;padding:14px 16px;border-radius:14px;background:var(--ink);color:#fff;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.enc{margin-top:14px;padding:16px 18px;border-radius:14px;background:var(--ink);color:#fff;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;text-align:center;align-items:center}
+.enc b{font-size:14.5px;line-height:1.4}.enc span{line-height:1.45;max-width:34ch}
 .enc::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transform:translateX(-100%)}
 .enc.run::before{animation:sweep 1.1s var(--ease) infinite}
 .enc b{font-size:14px}.enc span{font-size:12px;color:rgba(255,255,255,.7)}.enc .st{font-size:12px;color:#FF8FA8;font-weight:700}
 .arrows{display:flex;justify-content:center;margin:8px 0 4px;color:var(--crimson);font-size:18px}
+.wlegend{display:flex;gap:14px;font-size:12px;color:var(--ink-3);margin-bottom:8px}.wlegend i{display:inline-block;width:14px;height:8px;border-radius:4px;margin-right:5px}.wlegend .c{background:var(--crimson)}.wlegend .g{background:var(--line-2)}
+.wnote{font-size:12px;color:var(--ink-3);margin-top:10px;line-height:1.5}
+.wall.nodelta .prow.up .b i,.wall.nodelta .prow.down .b i{background:var(--line-2)}.wall.nodelta .prow.top .b i{background:var(--crimson)}
 .wall.compact .prow{grid-template-columns:118px 1fr 44px;height:19px}.wall.compact .prow .b{height:8px}.wall.compact .prow .n{font-size:12.5px}.wall.compact .prow .v{font-size:12px}
 @media (max-width:1100px){.fmflow{grid-template-columns:1fr}.col{min-height:0}}
 /* ---- 환자 선택 축 그룹 ---- */
@@ -365,14 +369,14 @@ SC.fm = async () => {
   const prior = {}; Object.keys(fm).forEach(k => prior[k] = 0.04);
   const probsAt = i => { const o = {}; const k = (i + 1) / n; Object.keys(fm).forEach(dx => o[dx] = +(prior[dx] + (fm[dx] - prior[dx]) * Math.pow(k, 1.4)).toFixed(3)); return o; };
   $('#app').innerHTML = `<section class="scene">
-    <div class="head"><div><h2>FM 입력 → 25개 진단 확률</h2><p class="lead">관찰창의 기록은 그대로 들어가지 않습니다. 한 줄마다 <b>도메인 · 표준 개념 코드 · 시각</b> 세 값으로 바뀌어 인코더에 들어가고, 인코더 위의 헤드가 25개 진단군의 확률을 냅니다. 가중치는 고정이며 이 환자로 학습하지 않습니다.</p></div></div>
+    <div class="head" style="margin-bottom:16px"><div><h2>FM 입력 → 25개 진단 확률</h2><p class="lead">기록 한 줄이 <b>도메인 · 표준 개념 코드 · 시각</b> 세 값으로 바뀌어 인코더에 들어가고, 25개 진단군 확률이 나옵니다.</p></div></div>
     <div class="fmflow">
       <div class="col"><div class="ch"><b>① 관찰창 기록</b><span>${esc(p.window.label)}</span></div><div class="recs2" id="recs"></div></div>
       <div class="col mid"><div class="ch"><b>② FM에 들어가는 형태</b><span>OMOP 표준 어휘로 변환</span></div>
         <div class="tokhead"><span>도메인</span><span>개념 코드 (어휘 · 원래 이름)</span><span>시각</span></div><div class="toks" id="toks"></div>
         <div class="arrows">↓</div>
-        <div class="enc" id="enc"><b>EHR 파운데이션 모델 (인코더 + 25개 진단 헤드)</b><span>수십만 명의 입원 기록을 코드 열로 학습 · 가중치 고정</span><span class="st" id="encst">대기</span></div></div>
-      <div class="col"><div class="ch"><b>③ 25개 진단군 확률</b><span id="wst">기록 0건 기준</span></div><div class="wall compact" id="wall">${wallHTML(prior)}</div></div>
+        <div class="enc" id="enc"><b>EHR 파운데이션 모델<br>(인코더 + 25개 진단 헤드)</b><span>수십만 명의 입원 기록을 코드 열로 학습한 모델 · 가중치 고정</span><span class="st" id="encst">대기</span></div></div>
+      <div class="col"><div class="ch"><b>③ 25개 진단군 확률</b><span id="wst">기록 0건 기준</span></div><div class="wlegend"><span><i class="c"></i>상위 5개 후보</span><span><i class="g"></i>그 외 진단</span></div><div class="wall compact nodelta" id="wall">${wallHTML(prior)}</div><p class="wnote">막대 길이가 확률(0~1)입니다. 기록이 들어올 때마다 25개가 모두 다시 계산되고, 마지막에 상위 5개가 크림슨으로 표시됩니다.</p></div>
     </div></section>`;
   if (p.chief) { const c = document.createElement('div'); c.className = 'rec2 ch0'; c.innerHTML = `<span class="t">주증상</span><span class="n">${esc(p.chief)}</span><span></span>`; $('#recs').appendChild(c); requestAnimationFrame(() => c.classList.add('in')); await wait(500); }
   const wall = $('#wall'); wallFill(wall); _prevProbs = { ...prior };
@@ -385,7 +389,7 @@ SC.fm = async () => {
     await wait(240);
     const [dom, vocab] = DOMAIN[r.kind] || ['Observation', 'SNOMED'];
     const tk = document.createElement('div'); tk.className = 'tok'; tk.innerHTML = `<span class="dm">${dom}</span><span class="cd">${codeOf(r.name)}<small>${vocab} · ${esc(r.name)}${r.value ? ' · ' + esc(r.value) : ''}</small></span><span class="tm">+${mins(r.t)}분</span>`; $('#toks').appendChild(tk); requestAnimationFrame(() => tk.classList.add('in'));
-    if ($('#toks').children.length > 9) $('#toks').firstChild.remove();
+    if ($('#toks').children.length > 4) $('#toks').firstChild.remove();
     await wait(240);
     const pr = probsAt(i); wallUpdate(wall, pr, i === n - 1 ? top5 : [], true); $('#wst').textContent = `기록 ${i + 1}건 기준`;
     await wait(220);

@@ -75,6 +75,17 @@
 .flow .fs.done{background:var(--tint);color:var(--crimson)}.flow .fs.cur{background:var(--crimson);color:#fff}
 .flow .fa{width:14px;height:1px;background:var(--line-2)}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--ink-3);margin-bottom:8px}.legend i{display:inline-block;width:14px;height:8px;border-radius:4px;margin-right:5px;vertical-align:0}.legend .lg-base{background:var(--line-2)}.legend .lg-now{background:var(--crimson)}
+.dwall{display:flex;flex-direction:column;gap:8px}
+.drow{display:grid;grid-template-columns:118px 1fr 58px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.drow .n{font-size:13.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow.top .n{color:var(--ink);font-weight:700}
+.drow .bars{display:flex;flex-direction:column;gap:4px}
+.drow .bl{display:grid;grid-template-columns:1fr 40px;gap:8px;align-items:center;height:12px}
+.drow .bl i{display:block;height:10px;border-radius:5px;width:0;transition:width .5s var(--spring)}
+.drow .bl .base{background:var(--line-2)}.drow .bl .now{background:var(--crimson)}
+.drow .bl b{font-size:11.5px;color:var(--ink-3);font-weight:500;text-align:right}.drow .bl .vn{color:var(--crimson);font-weight:700}
+.drow .dd{font-size:12.5px;text-align:right;color:var(--ink-3);font-weight:600}.drow .dd.up{color:var(--crimson)}.drow .dd.down{color:#1F5FA8}
+.moreall{margin-top:10px;width:100%}
 .wall.ghost .prow .b{position:relative;background:transparent;overflow:visible}
 .wall.ghost .prow .b .g{position:absolute;left:0;top:0;height:100%;width:0;background:var(--surface-2);border:1px solid var(--line-2);border-radius:5px;box-sizing:border-box;transition:width .6s var(--spring)}
 .wall.ghost .prow .b i:not(.g){position:relative;z-index:1}
@@ -192,11 +203,27 @@ SC.er = () => {
       <div class="dials">${Object.entries(VITALS).map(([k, v]) => `<div class="dial"><div class="dn">${v.label}<small>${v.unit}</small></div><div class="seg ${k}" data-k="${k}"><div class="ind"></div>${v.levels.map((l, i) => `<button data-i="${i}">${l}</button>`).join('')}</div><div class="dv num" id="dv_${k}"></div></div>`).join('')}</div>
       <div class="labs"><div class="lh"><h3>${S.env === 'out' ? '검진 패널 · 첫 방문 혈액검사' : '1시간 안의 채혈 결과'}</h3><button class="btn small primary" id="draw">${S.env === 'out' ? '검진 패널 받기' : '채혈 결과 받기'}</button></div><div class="ll" id="ll"><span class="sub">${S.env === 'out' ? '아직 결과가 없습니다. 검진 결과지와 첫 채혈이 함께 들어옵니다.' : '아직 결과가 없습니다. 도착 40분쯤 첫 결과가 옵니다.'}</span></div></div>
       <div class="whatif"><span class="sub">만약에</span>${S.env === 'out' ? '<button class="btn small ghost" data-wi="sbp:3">혈압이 높게 나왔다면</button><button class="btn small ghost" data-wi="hr:2">맥박이 빨랐다면</button><button class="btn small ghost" data-wi="spo2:1">산소포화도가 약간 낮았다면</button>' : '<button class="btn small ghost" data-wi="spo2:3">산소포화도가 위험 수준이었다면</button><button class="btn small ghost" data-wi="sbp:0">혈압이 매우 낮았다면</button><button class="btn small ghost" data-wi="temp:3">체온이 매우 높았다면</button>'}<button class="btn small tint" data-wi="reset">처음 값으로</button></div></div>
-    <aside class="wall-card card"><div class="wh"><b>FM 확률 · 25개 진단군</b><span class="sub" id="wst">실시간</span></div><div class="legend"><span><i class="lg-base"></i>수치가 모두 정상일 때</span><span><i class="lg-now"></i>지금</span></div><div class="wall ghost" id="wall">${wallHTML(Engine.probs(S))}</div><div class="more" id="wdiff"></div></aside></div></section>`;
+    <aside class="wall-card card"><div class="wh"><b>FM 확률 · 25개 진단군</b><span class="sub" id="wst">실시간</span></div><div class="legend"><span><i class="lg-base"></i>위 · 수치가 모두 정상일 때</span><span><i class="lg-now"></i>아래 · 지금</span></div><div class="dwall" id="wall"></div><div class="more" id="wdiff"></div><button class="btn small ghost moreall" id="moreall">25개 전체 보기</button></aside></div></section>`;
   const paintDials = () => Object.entries(VITALS).forEach(([k, v]) => { const lv = S.vitals[k]; const seg = $(`.seg[data-k="${k}"]`); seg.className = `seg ${k} l${lv}`; seg.querySelector('.ind').style.left = `calc(${lv * 25}% + 4px)`; $$('button', seg).forEach(b => b.classList.toggle('on', +b.dataset.i === lv)); $(`#dv_${k}`).innerHTML = `${v.vals[lv]}<small>${v.unit}</small>`; });
   const baseS = () => ({ ...S, vitals: { ...VITAL_DEFAULT }, labs: [], tests: [] });
-  const paintBase = () => { const bp = Engine.probs(baseS()); $$('#wall .prow').forEach(r => { let g = r.querySelector('.g'); if (!g) { g = document.createElement('i'); g.className = 'g'; r.querySelector('.b').prepend(g); } g.style.width = (bp[r.dataset.dx] * 100) + '%'; }); return bp; };
-  const refresh = () => { const pr = Engine.probs(S); const bp = paintBase(); wallUpdate($('#wall'), pr, Engine.top(pr, 5), true); const diffs = Object.keys(pr).map(k => ({ k, d: pr[k] - bp[k] })).filter(x => Math.abs(x.d) >= 0.05).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 3); $('#wdiff').innerHTML = diffs.length ? '정상 대비 ' + diffs.map(x => `<b>${esc(x.k)}</b> ${x.d > 0 ? '▲' : '▼'} ${Math.abs(x.d).toFixed(2)}`).join(' · ') : '정상 대비 달라진 확률이 없습니다 — 단계를 올려 보세요'; };
+  let showAll = false;
+  const refresh = () => {
+    const pr = Engine.probs(S), bp = Engine.probs(baseS()); const top = Engine.top(pr, 5);
+    const order = Object.keys(pr).sort((a, b) => pr[b] - pr[a]); const shown = showAll ? order : order.slice(0, 8);
+    const wall = $('#wall');
+    shown.forEach(dx => {
+      let row = wall.querySelector(`.drow[data-dx="${CSS.escape(dx)}"]`);
+      if (!row) { row = document.createElement('div'); row.className = 'drow'; row.dataset.dx = dx; row.innerHTML = `<span class="n">${esc(dx)}</span><div class="bars"><div class="bl"><i class="base"></i><b class="num vb"></b></div><div class="bl"><i class="now"></i><b class="num vn"></b></div></div><span class="dd num"></span>`; wall.appendChild(row); }
+      wall.appendChild(row);
+      row.classList.toggle('top', top.includes(dx));
+      row.querySelector('.base').style.width = (bp[dx] * 100) + '%'; row.querySelector('.now').style.width = (pr[dx] * 100) + '%';
+      row.querySelector('.vb').textContent = fmt(bp[dx]); row.querySelector('.vn').textContent = fmt(pr[dx]);
+      const dlt = pr[dx] - bp[dx]; const dd = row.querySelector('.dd'); dd.textContent = Math.abs(dlt) >= 0.005 ? (dlt > 0 ? '▲ ' : '▼ ') + Math.abs(dlt).toFixed(2) : '—'; dd.className = 'dd num ' + (dlt >= 0.005 ? 'up' : dlt <= -0.005 ? 'down' : '');
+    });
+    [...wall.children].forEach(r => { if (!shown.includes(r.dataset.dx)) r.remove(); });
+    const diffs = order.map(k => ({ k, d: pr[k] - bp[k] })).filter(x => Math.abs(x.d) >= 0.05).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 3);
+    $('#wdiff').innerHTML = diffs.length ? '정상 대비 ' + diffs.map(x => `<b>${esc(x.k)}</b> ${x.d > 0 ? '▲' : '▼'} ${Math.abs(x.d).toFixed(2)}`).join(' · ') : '정상 대비 달라진 확률이 없습니다 — 단계를 올려 보세요';
+  };
   $$('.seg button').forEach(b => b.onclick = () => { S.vitals[b.closest('.seg').dataset.k] = +b.dataset.i; paintDials(); refresh(); });
   $$('[data-wi]').forEach(b => b.onclick = () => { const w = b.dataset.wi; if (w === 'reset') S.vitals = { ...EVS().find(e => e.id === S.event).vit }; else { const [k, i] = w.split(':'); S.vitals[k] = +i; } paintDials(); refresh(); });
   $('#draw').onclick = async () => {
@@ -204,7 +231,7 @@ SC.er = () => {
     for (const l of Engine.labs(S)) { S.labs.push(l); const d = document.createElement('div'); d.className = 'lab ' + (l.flag || ''); d.innerHTML = `${l.name} <b>${l.value}</b>`; $('#ll').appendChild(d); refresh(); await sleep(420); }
     $('#wst').textContent = '실시간'; $('#draw').textContent = '결과 도착'; { const st = Store.get('ehr_demo2_stats', { n: 0 }); st.n++; Store.set('ehr_demo2_stats', st); } Router.ready('LLM 보정 · 추론 보기');
   };
-  paintDials(); wallFill($('#wall')); _prevProbs = Engine.probs(S); paintBase(); refresh();
+  paintDials(); refresh(); $('#moreall').onclick = () => { showAll = !showAll; $('#moreall').textContent = showAll ? '상위 8개만 보기' : '25개 전체 보기'; refresh(); };
   Router.block(S.env === 'out' ? '검진 패널을 먼저 받아 주세요' : '채혈 결과를 먼저 받아 주세요');
 };
 
