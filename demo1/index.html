@@ -219,10 +219,10 @@
 .tok .tm{text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .tokhead{display:grid;grid-template-columns:82px 1fr 56px;gap:8px;padding:0 10px 6px;font-size:11px;color:var(--ink-3)}
 .enc{margin-top:14px;padding:16px 18px;border-radius:14px;background:var(--ink);color:#fff;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;text-align:center;align-items:center}
-.enc b{font-size:14.5px;line-height:1.4}.enc span{line-height:1.45;max-width:34ch}
+.enc b{font-size:14.5px;line-height:1.4}.enc span{line-height:1.45;max-width:34ch;word-break:keep-all}
 .enc::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transform:translateX(-100%)}
 .enc.run::before{animation:sweep 1.1s var(--ease) infinite}
-.enc b{font-size:14px}.enc span{font-size:12px;color:rgba(255,255,255,.7)}.enc .st{display:block;max-width:none;font-size:12px;color:#FF8FA8;font-weight:700}
+.enc b{font-size:14px}.enc span{font-size:12px;color:rgba(255,255,255,.7)}.enc .encst{display:block;width:100%;max-width:none;word-break:keep-all;font-size:12px;color:#FF8FA8;font-weight:700}
 .arrows{display:flex;justify-content:center;margin:8px 0 4px;color:var(--crimson);font-size:18px}
 .wlegend{display:flex;gap:14px;font-size:12px;color:var(--ink-3);margin-bottom:8px}.wlegend i{display:inline-block;width:14px;height:8px;border-radius:4px;margin-right:5px}.wlegend .c{background:var(--crimson)}.wlegend .g{background:var(--line-2)}
 .wnote{font-size:12px;color:var(--ink-3);margin-top:10px;line-height:1.5}
@@ -375,7 +375,7 @@ SC.fm = async () => {
       <div class="col mid"><div class="ch"><b>② FM에 들어가는 형태</b><span>OMOP 표준 어휘로 변환</span></div>
         <div class="tokhead"><span>도메인</span><span>개념 코드 (어휘 · 원래 이름)</span><span>시각</span></div><div class="toks" id="toks"></div>
         <div class="arrows">↓</div>
-        <div class="enc" id="enc"><b>EHR 파운데이션 모델<br>(인코더 + 25개 진단 헤드)</b><span>수십만 명의 입원 기록을 코드 열로 학습한 모델 · 가중치 고정</span><span class="st" id="encst">대기</span></div></div>
+        <div class="enc" id="enc"><b>EHR 파운데이션 모델<br>(인코더 + 25개 진단 헤드)</b><span>수십만 명의 입원 기록을 코드 열로 학습한 모델 · 가중치 고정</span><span class="encst" id="encst">대기</span></div></div>
       <div class="col"><div class="ch"><b>③ 25개 진단군 확률</b><span id="wst">기록 0건 기준</span></div><div class="wlegend"><span><i class="c"></i>상위 5개 후보</span><span><i class="g"></i>그 외 진단</span></div><div class="wall compact nodelta" id="wall">${wallHTML(prior)}</div><p class="wnote">막대 길이가 확률(0~1)입니다. 기록이 들어올 때마다 25개가 모두 다시 계산되고, 마지막에 상위 5개가 크림슨으로 표시됩니다.</p></div>
     </div></section>`;
   if (p.chief) { const c = document.createElement('div'); c.className = 'rec2 ch0'; c.innerHTML = `<span class="t">주증상</span><span class="n">${esc(p.chief)}</span><span></span>`; $('#recs').appendChild(c); requestAnimationFrame(() => c.classList.add('in')); await wait(500); }
